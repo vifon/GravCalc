@@ -14,7 +14,7 @@ Buttons:
 - **lower**: click  
 - **middle**: push to the stack  
 - **middle longpress**: empty the stack  
-- **upper**: backspace / delete the last number from the stack  
+- **upper**: backspace / pop the last number from the stack  
 - **upper longpress**: delete the current number
 
 The calculator uses the
