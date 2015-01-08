@@ -19,7 +19,10 @@ static Layer *s_cursor_layer;
 
 /** Size of the calculator stack (@ref s_calculator_stack). */
 #define CALC_STACK_SIZE 64
-/** Numeric type used for the calculations. */
+/** Numeric type used for the calculations.
+ *
+ *  TODO Switch to fixed-point as floats are not really supported.
+ */
 #define CALC_TYPE int
 /** @p printf format specifier for @ref CALC_TYPE. */
 #define CALC_TYPE_FMT "%d"
@@ -57,50 +60,9 @@ static const char s_keypad_text[][2] =
  "7", "8", "9", "*",
  "0", ".", "N", "/"};
 
-/** Read the data from the accelerometer and then movie the cursor
- *  (@ref s_cursor_position) according to them.
+/** @defgroup helpers
+ *  @brief Helper functions.
  */
-static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_samples) {
-    s_cursor_position.x +=  data[0].x * (SCREEN_W / 4000.f);
-    s_cursor_position.y += -data[0].y * (SCREEN_H / 4000.f);
-
-    if (s_cursor_position.x < 0) {
-        s_cursor_position.x = 0;
-    } else if (s_cursor_position.x > SCREEN_W) {
-        s_cursor_position.x = SCREEN_W;
-    }
-
-    if (s_cursor_position.y < 0) {
-        s_cursor_position.y = 0;
-    } else if (s_cursor_position.y > SCREEN_H-INPUT_BOX_HEIGHT) {
-        s_cursor_position.y = SCREEN_H-INPUT_BOX_HEIGHT;
-    }
-
-    layer_mark_dirty(s_cursor_layer);
-}
-
-/** Change the edited fraction part (integral or fractional).
- *
- *  @param to_fractional If true, switch to the fractional part.
- *  Otherwise switch to the integral part.
- *
- *  @return False if the passed state was already set. True otherwise.
- */
-static bool switch_edited_fraction_part(bool to_fractional) {
-    if (s_editing_fractional_part == to_fractional) {
-        return false;
-    } else {
-        s_editing_fractional_part = to_fractional;
-        return true;
-    }
-}
-
-/** Clear the whole input buffer and reset its state. */
-static void clear_input() {
-    s_input_length = 0;
-    s_input_buffer[0] = '\0';
-    switch_edited_fraction_part(false);
-}
 
 /** Convert a string to integer.
  *
@@ -141,6 +103,68 @@ static int str_to_int(const char *str, char **endptr) {
 static float str_to_float(const char *str) {
     /* TODO */
     return 0.0;
+}
+
+/** Calculate the coordinates and bounds of the n-th calculator button
+ *  relative to the upper upper left corner of the layer.
+ *
+ *  @param button_index Index number of the button.
+ *
+ *  @return GRect structure with the coordinates/bounds.
+ */
+static GRect get_rect_for_button(unsigned int button_index) {
+    const unsigned int keypad_margin_x = 5;
+    const unsigned int keypad_margin_y = 3;
+    const unsigned int key_sep_x = 5;
+    const unsigned int key_sep_y = 5;
+    const unsigned int keys_in_row = 4;
+    const unsigned int key_width = 24;
+    const unsigned int key_height = 24;
+
+    GRect bounds = GRect(
+        /* horizontal position */
+        button_index % keys_in_row
+        * (key_width + key_sep_x)
+        + keypad_margin_x,
+        /* vertical position */
+        button_index / keys_in_row
+        * (key_height + key_sep_y)
+        + keypad_margin_y,
+        /* size */
+        key_width,
+        key_height);
+
+    return bounds;
+}
+
+/** @}  */
+
+/** @defgroup calculator Calculator functions
+ *  @brief Calculator stack and input buffer management
+ *  @{
+ */
+
+/** Change the edited fraction part (integral or fractional).
+ *
+ *  @param to_fractional If true, switch to the fractional part.
+ *  Otherwise switch to the integral part.
+ *
+ *  @return False if the passed state was already set. True otherwise.
+ */
+static bool switch_edited_fraction_part(bool to_fractional) {
+    if (s_editing_fractional_part == to_fractional) {
+        return false;
+    } else {
+        s_editing_fractional_part = to_fractional;
+        return true;
+    }
+}
+
+/** Clear the whole input buffer and reset its state. */
+static void clear_input() {
+    s_input_length = 0;
+    s_input_buffer[0] = '\0';
+    switch_edited_fraction_part(false);
 }
 
 /** Push the passed number or the value in @ref s_input_buffer to the
@@ -245,37 +269,12 @@ static void validate_and_append_to_input_buffer(char new_character) {
     s_input_buffer[s_input_length]   = '\0';
 }
 
-/** Calculate the coordinates and bounds of the n-th calculator button
- *  relative to the upper upper left corner of the layer.
- *
- *  @param button_index Index number of the button.
- *
- *  @return GRect structure with the coordinates/bounds.
+/** @}  */
+
+/** @defgroup handlers Button handlers
+ *  @brief Callbacks for the button presses
+ *  @{
  */
-static GRect get_rect_for_button(unsigned int button_index) {
-    const unsigned int keypad_margin_x = 5;
-    const unsigned int keypad_margin_y = 3;
-    const unsigned int key_sep_x = 5;
-    const unsigned int key_sep_y = 5;
-    const unsigned int keys_in_row = 4;
-    const unsigned int key_width = 24;
-    const unsigned int key_height = 24;
-
-    GRect bounds = GRect(
-        /* horizontal position */
-        button_index % keys_in_row
-        * (key_width + key_sep_x)
-        + keypad_margin_x,
-        /* vertical position */
-        button_index / keys_in_row
-        * (key_height + key_sep_y)
-        + keypad_margin_y,
-        /* size */
-        key_width,
-        key_height);
-
-    return bounds;
-}
 
 /** Handler for the button used for selection/clicking.
  */
@@ -354,7 +353,9 @@ static void push_click_handler(ClickRecognizerRef recognizer, void *context) {
     push_number(NULL);
 }
 
-/** Set the click handlers.
+/** @} */
+
+/** Set the button handlers.
  *
  *  <b>Upper</b>: backspace / pop from the stack<br />
  *  <b>Upper long</b>: clear the current input<br />
@@ -372,7 +373,12 @@ static void click_config_provider(void *context) {
     window_single_click_subscribe(BUTTON_ID_DOWN, select_click_handler);
 }
 
-/** Draw the key and their borders.
+/** @defgroup redraw
+ *  @brief Callbacks for redrawing the display.
+ *  @{
+ */
+
+/** Draw the keys and their borders.
  */
 static void draw_keypad_callback(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorBlack);
@@ -475,6 +481,13 @@ static void draw_cursor_callback(Layer *layer, GContext *ctx) {
     graphics_draw_circle(ctx, s_cursor_position, 4);
 }
 
+/** @} */
+
+/** @defgroup window Window management
+ *  @brief Window and layer management
+ *  @{
+ */
+
 static void main_window_load(Window *window) {
     /* Create the layer with the keypad etc. */
     s_keypad_layer = layer_create(
@@ -515,6 +528,28 @@ static void main_window_unload(Window *window) {
     layer_destroy(s_cursor_layer);
 }
 
+/** Read the data from the accelerometer and then movie the cursor
+ *  (@ref s_cursor_position) according to them.
+ */
+static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_samples) {
+    s_cursor_position.x +=  data[0].x * (SCREEN_W / 4000.f);
+    s_cursor_position.y += -data[0].y * (SCREEN_H / 4000.f);
+
+    if (s_cursor_position.x < 0) {
+        s_cursor_position.x = 0;
+    } else if (s_cursor_position.x > SCREEN_W) {
+        s_cursor_position.x = SCREEN_W;
+    }
+
+    if (s_cursor_position.y < 0) {
+        s_cursor_position.y = 0;
+    } else if (s_cursor_position.y > SCREEN_H-INPUT_BOX_HEIGHT) {
+        s_cursor_position.y = SCREEN_H-INPUT_BOX_HEIGHT;
+    }
+
+    layer_mark_dirty(s_cursor_layer);
+}
+
 static void init() {
     // Create main Window
     s_main_window = window_create();
@@ -539,6 +574,8 @@ static void deinit() {
 
     accel_data_service_unsubscribe();
 }
+
+/** @} */
 
 int main(void) {
     init();
