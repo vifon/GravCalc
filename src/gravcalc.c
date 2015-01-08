@@ -356,16 +356,20 @@ static void push_click_handler(ClickRecognizerRef recognizer, void *context) {
 
 /** Set the click handlers.
  *
- *  <b>Upper: push</b><br />
- *  <b>Middle: backspace/pop</b><br />
- *  <b>Lower: click</b><br />
+ *  <b>Upper</b>: backspace / pop from the stack<br />
+ *  <b>Upper long</b>: clear the current input<br />
+ *  <b>Middle</b>: push to the stack<br />
+ *  <b>Middle long</b>: empty the stack<br />
+ *  <b>Lower</b>: click / confirm<br />
  */
 static void click_config_provider(void *context) {
-    window_single_click_subscribe(BUTTON_ID_DOWN, select_click_handler);
     window_single_click_subscribe(BUTTON_ID_UP, cancel_click_handler);
     window_long_click_subscribe(BUTTON_ID_UP, 500, clear_input_click_handler, NULL);
+
     window_long_click_subscribe(BUTTON_ID_SELECT, 1000, empty_stack_click_handler, NULL);
     window_single_click_subscribe(BUTTON_ID_SELECT, push_click_handler);
+
+    window_single_click_subscribe(BUTTON_ID_DOWN, select_click_handler);
 }
 
 /** Draw the key and their borders.
