@@ -51,7 +51,7 @@ static const char s_keypad_text[][2] =
 {"1", "2", "3", "+",
  "4", "5", "6", "-",
  "7", "8", "9", "*",
- "0", ".", " ", "/"};
+ "0", ".", "N", "/"};
 
 /** Read the data from the accelerometer and then movie the cursor
  *  (@ref s_cursor_position) according to them.
@@ -223,7 +223,7 @@ static bool switch_edited_fraction_part(bool to_fractional) {
  *
  *  @param new_character The character to append.
  */
-static void append_to_input_buffer(char new_character) {
+static void validate_and_append_to_input_buffer(char new_character) {
     if (s_input_length+1 >= INPUT_BUFFER_SIZE) {
         return;                 /* the input buffer is full */
     }
@@ -231,7 +231,10 @@ static void append_to_input_buffer(char new_character) {
         return;                 /* no leading zeros */
     }
     if (s_input_length == 0 && new_character == '.') {
-        append_to_input_buffer('.');
+        validate_and_append_to_input_buffer('.');
+    }
+    if (s_input_length != 0 && new_character == '-') {
+        return;
     }
 
     s_input_buffer[s_input_length++] = new_character;
@@ -286,12 +289,12 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 
             /* Check if it was the number key... */
             if (clicked_text[0] >= '0' && clicked_text[0] <= '9') {
-                append_to_input_buffer(clicked_text[0]);
+                validate_and_append_to_input_buffer(clicked_text[0]);
             }
             /* ...or the decimal point... */
             else if (clicked_text[0] == '.') {
                 if (switch_edited_fraction_part(true)) {
-                    append_to_input_buffer(clicked_text[0]);
+                    validate_and_append_to_input_buffer(clicked_text[0]);
                 }
             }
             /* ...or operator. */
@@ -303,8 +306,8 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
                 case '/':
                     perform_operation(clicked_text[0]);
                     break;
-                case ' ':
-                    /* TODO: negation */
+                case 'N':
+                    validate_and_append_to_input_buffer('-');
                     break;
                 default:
                     APP_LOG(APP_LOG_LEVEL_DEBUG, "%s","Should never be reached.");
