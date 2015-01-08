@@ -1,6 +1,5 @@
 /** @file gravcalc.c
  *  @author Wojciech 'vifon' Siewierski
- *  @email wojciech dot siewierski at onet dot pl
  */
 
 /***********************************************************************************/
