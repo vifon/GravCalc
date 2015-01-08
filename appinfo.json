@@ -1,0 +1,17 @@
+{
+  "uuid": "61bc218e-ec68-4144-8d5e-a8d1b19823f6",
+  "shortName": "gravcalc",
+  "longName": "gravcalc",
+  "companyName": "vifon",
+  "versionCode": 1,
+  "versionLabel": "1.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "dummy": 0
+  },
+  "resources": {
+    "media": []
+  }
+}
