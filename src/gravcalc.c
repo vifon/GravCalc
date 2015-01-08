@@ -395,42 +395,42 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
         break;
     case 1:
         snprintf(buffer, 64,
-                 "%s %s "CALC_TYPE_FMT"",
-                 s_input_length > 0 ? s_input_buffer : "0",
+                 ""CALC_TYPE_FMT" %s %s",
+                 s_calculator_stack[s_calculator_stack_index-1],
                  "_",
-                 s_calculator_stack[s_calculator_stack_index-1]);
+                 s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 2:
         snprintf(buffer, 64,
-                 "%s %s "CALC_TYPE_FMT"  "CALC_TYPE_FMT"",
-                 s_input_length > 0 ? s_input_buffer : "0",
-                 "_",
+                 ""CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
+                 s_calculator_stack[s_calculator_stack_index-2],
                  s_calculator_stack[s_calculator_stack_index-1],
-                 s_calculator_stack[s_calculator_stack_index-2]);
+                 "_",
+                 s_input_length > 0 ? s_input_buffer : "0");
         break;
     default:
         snprintf(buffer, 64,
-                 "%s %s "CALC_TYPE_FMT"  "CALC_TYPE_FMT" ...[%u]",
-                 s_input_length > 0 ? s_input_buffer : "0",
-                 "_",
-                 s_calculator_stack[s_calculator_stack_index-1],
+                 "[%u]... "CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
+                 s_calculator_stack_index,
                  s_calculator_stack[s_calculator_stack_index-2],
-                 s_calculator_stack_index);
+                 s_calculator_stack[s_calculator_stack_index-1],
+                 "_",
+                 s_input_length > 0 ? s_input_buffer : "0");
         break;
     }
 
     /* create the text margin */
     GRect bounds = layer_get_bounds(layer);
     bounds.origin.x += 5;
-    bounds.size.w -= 5;
+    bounds.size.w -= 10;
 
     graphics_draw_text(
         ctx,
         buffer,
-        fonts_get_system_font(FONT_KEY_GOTHIC_14),
+        fonts_get_system_font(FONT_KEY_GOTHIC_24),
         bounds,
         GTextOverflowModeTrailingEllipsis,
-        GTextAlignmentLeft,
+        GTextAlignmentRight,
         NULL);
 }
 
