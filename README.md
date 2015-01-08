@@ -27,6 +27,12 @@ INSTALLATION
     $ export PEBBLE_PHONE=192.168.???.???   # (your phone's IP)
     $ make install
 
+ACKNOWLEDGMENTS
+---------------
+
+GravCalc was inspired by
+[this post on Reddit](http://www.reddit.com/r/pebble/comments/2rl91o/app_request_a_cursor_based_calculator_that_uses/).
+
 COPYRIGHT
 ---------
 
