@@ -78,6 +78,10 @@ static const char s_keypad_text[][2] =
  "1", "2", "3", "*",
  "0", ".", "N", "/"};
 
+/* Variables with colors for easy swapping. */
+static const GColor main_color = GColorClear;
+static const GColor secondary_color = GColorBlack;
+
 /** @defgroup helpers
  *  @brief Helper functions.
  */
@@ -406,8 +410,10 @@ static void click_config_provider(void *context) {
 /** Draw the keys and their borders.
  */
 static void draw_keypad_callback(Layer *layer, GContext *ctx) {
-    graphics_context_set_stroke_color(ctx, GColorBlack);
-    graphics_context_set_text_color(ctx, GColorBlack);
+    graphics_context_set_fill_color(ctx, main_color);
+    graphics_context_set_stroke_color(ctx, secondary_color);
+    graphics_context_set_text_color(ctx, secondary_color);
+    graphics_fill_rect(ctx, layer_get_bounds(layer), 2, GCornerNone);
 
     const GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
@@ -419,7 +425,8 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
 
         if (active) {
             /* invert colors */
-            graphics_context_set_text_color(ctx, GColorClear);
+            graphics_context_set_text_color(ctx, main_color);
+            graphics_context_set_fill_color(ctx, secondary_color);
             graphics_fill_rect(ctx, bounds, 1, GCornerNone);
         } else {
             graphics_draw_rect(ctx, bounds);
@@ -435,7 +442,7 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
             NULL);
         if (active) {
             /* cleanup */
-            graphics_context_set_text_color(ctx, GColorBlack);
+            graphics_context_set_text_color(ctx, secondary_color);
         }
     }
 }
@@ -443,8 +450,8 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
 /** Draw the current input the stack information and their background.
  */
 static void draw_input_callback(Layer *layer, GContext *ctx) {
-    graphics_context_set_stroke_color(ctx, GColorBlack);
-    graphics_context_set_text_color(ctx, GColorClear);
+    graphics_context_set_fill_color(ctx, secondary_color);
+    graphics_context_set_text_color(ctx, main_color);
     graphics_fill_rect(ctx, layer_get_bounds(layer), 2, GCornerNone);
 
     char buffer[64];
@@ -497,12 +504,12 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
 
 /** Draw the cursor with an outline. */
 static void draw_cursor_callback(Layer *layer, GContext *ctx) {
-    /* Draw the black cursor. */
-    graphics_context_set_stroke_color(ctx, GColorBlack);
+    /* Draw the cursor. */
+    graphics_context_set_fill_color(ctx, secondary_color);
     graphics_fill_circle(ctx, s_cursor_position, 3);
 
-    /* Draw the white outline for visibility on black background. */
-    graphics_context_set_stroke_color(ctx, GColorClear);
+    /* Draw the cursor outline for better visibility. */
+    graphics_context_set_stroke_color(ctx, main_color);
     graphics_draw_circle(ctx, s_cursor_position, 4);
 }
 
