@@ -55,9 +55,9 @@ static GPoint s_cursor_position =
 
 /** Text on the keypads. Only unique 1-character strings allowed. */
 static const char s_keypad_text[][2] =
-{"1", "2", "3", "+",
+{"7", "8", "9", "+",
  "4", "5", "6", "-",
- "7", "8", "9", "*",
+ "1", "2", "3", "*",
  "0", ".", "N", "/"};
 
 /** @defgroup helpers
@@ -118,7 +118,9 @@ static GRect get_rect_for_button(unsigned int button_index) {
     const unsigned int key_sep_x = 5;
     const unsigned int key_sep_y = 5;
     const unsigned int keys_in_row = 4;
-    const unsigned int key_width = 24;
+    const unsigned int key_width = (SCREEN_W
+                                    - key_sep_x * (keys_in_row-1)
+                                    - keypad_margin_x * 2) / 4;
     const unsigned int key_height = 24;
 
     GRect bounds = GRect(
