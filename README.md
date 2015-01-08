@@ -5,6 +5,8 @@ Accelerometer-based calculator for the Pebble smartwatch.
 
 Note: this application is not yet available on the Pebble appstore.
 
+Run `make doc` to generate the documentation with Doxygen.
+
 USAGE
 -----
 
