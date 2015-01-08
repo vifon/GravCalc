@@ -220,10 +220,15 @@ static void pop_number(bool edit) {
     }
 
     if (edit) {
-        s_input_length = snprintf(
-            s_input_buffer, INPUT_BUFFER_SIZE,
-            ""CALC_TYPE_FMT"",
-            s_calculator_stack[s_calculator_stack_index-1]);
+        if (s_calculator_stack[s_calculator_stack_index-1] != 0) {
+            s_input_length = snprintf(
+                s_input_buffer, INPUT_BUFFER_SIZE,
+                ""CALC_TYPE_FMT"",
+                s_calculator_stack[s_calculator_stack_index-1]);
+        } else {
+            /* A lone leading 0 is still a leading 0 (which is invalid). */
+            clear_input();
+        }
     }
     --s_calculator_stack_index;
 }
