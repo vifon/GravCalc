@@ -148,12 +148,20 @@ static bool push_number(CALC_TYPE *number) {
     return true;
 }
 
-/** Pop number from the stack (@b without returning it!).
+/** Pop number from the stack and optionally return it to the editing buffer.
  */
-static void pop_number() {
-    if (s_calculator_stack_index > 0) {
-        --s_calculator_stack_index;
+static void pop_number(bool edit) {
+    if (s_calculator_stack_index == 0) {
+        return;
     }
+
+    if (edit) {
+        s_input_length = snprintf(
+            s_input_buffer, INPUT_BUFFER_SIZE,
+            ""CALC_TYPE_FMT"",
+            s_calculator_stack[s_calculator_stack_index-1]);
+    }
+    --s_calculator_stack_index;
 }
 
 /** Perform an operation using the arguments from the calculator stack.
@@ -316,7 +324,7 @@ static void cancel_click_handler(ClickRecognizerRef recognizer, void *context) {
         }
         s_input_buffer[s_input_length] = '\0';
     } else {
-        pop_number();
+        pop_number(true);
     }
 }
 
