@@ -549,7 +549,7 @@ static void main_window_unload(Window *window) {
     layer_destroy(s_cursor_layer);
 }
 
-/** Read the data from the accelerometer and then movie the cursor
+/** Read the data from the accelerometer and then move the cursor
  *  (@ref s_cursor_position) according to them.
  */
 static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_samples) {
