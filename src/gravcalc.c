@@ -1,4 +1,6 @@
 /** @file gravcalc.c
+ *  @author Wojciech 'vifon' Siewierski \<wojciech dot siewierski at onet dot pl\>
+ *  @date January 2015
  */
 
 #include <pebble.h>
@@ -17,7 +19,9 @@ static Layer *s_cursor_layer;
 
 /** Size of the calculator stack (@ref s_calculator_stack). */
 #define CALC_STACK_SIZE 64
+/** Numeric type used for the calculations. */
 #define CALC_TYPE int
+/** @p printf format specifier for @ref CALC_TYPE. */
 #define CALC_TYPE_FMT "%d"
 /** Calculations stack. */
 static CALC_TYPE s_calculator_stack[CALC_STACK_SIZE];
@@ -75,11 +79,27 @@ static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_sa
     layer_mark_dirty(s_cursor_layer);
 }
 
+/** Change the edited fraction part (integral or fractional).
+ *
+ *  @param to_fractional If true, switch to the fractional part.
+ *  Otherwise switch to the integral part.
+ *
+ *  @return False if the passed state was already set. True otherwise.
+ */
+static bool switch_edited_fraction_part(bool to_fractional) {
+    if (s_editing_fractional_part == to_fractional) {
+        return false;
+    } else {
+        s_editing_fractional_part = to_fractional;
+        return true;
+    }
+}
+
 /** Clear the whole input buffer and reset its state. */
 static void clear_input() {
     s_input_length = 0;
     s_input_buffer[0] = '\0';
-    s_editing_fractional_part = false;
+    switch_edited_fraction_part(false);
 }
 
 /** Convert a string to integer.
@@ -89,7 +109,7 @@ static void clear_input() {
  *
  *  @return The converted integer.
  */
-static int str_to_int(const char* str, char **endptr) {
+static int str_to_int(const char *str, char **endptr) {
     int result = 0;
 
     int sign = 1;
@@ -118,7 +138,7 @@ static int str_to_int(const char* str, char **endptr) {
  *
  *  @return The converted float.
  */
-static float str_to_float(const char* str) {
+static float str_to_float(const char *str) {
     /* TODO */
     return 0.0;
 }
@@ -201,22 +221,6 @@ static bool perform_operation(char op) {
                               ""CALC_TYPE_FMT"", result);
 
     return true;
-}
-
-/** Change the edited fraction part (integral or fractional).
- *
- *  @param to_fractional If true, switch to the fractional part.
- *  Otherwise switch to the integral part.
- *
- *  @return False if the passed state was already set. True otherwise.
- */
-static bool switch_edited_fraction_part(bool to_fractional) {
-    if (s_editing_fractional_part == to_fractional) {
-        return false;
-    } else {
-        s_editing_fractional_part = to_fractional;
-        return true;
-    }
 }
 
 /** Add a new character to the input buffer (unless full).
@@ -376,6 +380,16 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
     for (i = 0; i < KEY_COUNT; ++i) {
         GRect bounds = get_rect_for_button(i);
 
+        bool active = grect_contains_point(&bounds, &s_cursor_position);
+
+        if (active) {
+            /* invert colors */
+            graphics_context_set_text_color(ctx, GColorClear);
+            graphics_fill_rect(ctx, bounds, 1, GCornerNone);
+        } else {
+            graphics_draw_rect(ctx, bounds);
+        }
+
         graphics_draw_text(
             ctx,
             s_keypad_text[i],
@@ -384,9 +398,10 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
             GTextOverflowModeTrailingEllipsis,
             GTextAlignmentCenter,
             NULL);
-        graphics_draw_rect(
-            ctx,
-            bounds);
+        if (active) {
+            /* cleanup */
+            graphics_context_set_text_color(ctx, GColorBlack);
+        }
     }
 }
 
@@ -445,14 +460,22 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
         NULL);
 }
 
+/** Draw the cursor with an outline. */
 static void draw_cursor_callback(Layer *layer, GContext *ctx) {
+    /* Draw the black cursor. */
     graphics_context_set_stroke_color(ctx, GColorBlack);
     graphics_fill_circle(ctx, s_cursor_position, 3);
+
+    /* Draw the white outline for visibility on black background. */
+    graphics_context_set_stroke_color(ctx, GColorClear);
+    graphics_draw_circle(ctx, s_cursor_position, 4);
 }
 
 static void main_window_load(Window *window) {
-    s_keypad_layer = layer_create(GRect(0, INPUT_BOX_HEIGHT,
-                                       144, SCREEN_H-INPUT_BOX_HEIGHT));
+    /* Create the layer with the keypad etc. */
+    s_keypad_layer = layer_create(
+        GRect(0, INPUT_BOX_HEIGHT,
+              144, SCREEN_H-INPUT_BOX_HEIGHT));
     layer_add_child(
         window_get_root_layer(window),
         s_keypad_layer);
@@ -460,8 +483,10 @@ static void main_window_load(Window *window) {
         s_keypad_layer,
         draw_keypad_callback);
 
-    s_input_layer = layer_create(GRect(0, 0,
-                                       144, INPUT_BOX_HEIGHT));
+    /* Create the layer with the input box. */
+    s_input_layer = layer_create(
+        GRect(0, 0,
+              144, INPUT_BOX_HEIGHT));
     layer_add_child(
         window_get_root_layer(window),
         s_input_layer);
@@ -469,6 +494,7 @@ static void main_window_load(Window *window) {
         s_input_layer,
         draw_input_callback);
 
+    /* Create the topmost layer with the cursor. */
     s_cursor_layer = layer_create(GRect(0, INPUT_BOX_HEIGHT,
                                         144, SCREEN_H-INPUT_BOX_HEIGHT));
     layer_add_child(
