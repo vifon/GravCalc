@@ -79,8 +79,8 @@ static const char s_keypad_text[][2] =
  "0", ".", "N", "/"};
 
 /* Variables with colors for easy swapping. */
-static const GColor main_color = GColorClear;
-static const GColor secondary_color = GColorBlack;
+static const GColor main_color = GColorBlack;
+static const GColor secondary_color = GColorClear;
 
 /** @defgroup helpers
  *  @brief Helper functions.
