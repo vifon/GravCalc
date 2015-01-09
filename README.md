@@ -36,6 +36,9 @@ ACKNOWLEDGMENTS
 GravCalc was inspired by
 [this post on Reddit](http://www.reddit.com/r/pebble/comments/2rl91o/app_request_a_cursor_based_calculator_that_uses/).
 
+Photos under the CC-BY license used in the promotional materials:
+[bear](http://commons.wikimedia.org/wiki/File:Ursus_arctos_-_Norway.jpg).
+
 COPYRIGHT
 ---------
 
