@@ -21,6 +21,8 @@
 /* along with this program. If not, see <http://www.gnu.org/licenses/>.            */
 /***********************************************************************************/
 
+#include "config.h"
+
 #include <pebble.h>
 
 static Window *s_main_window;
@@ -270,8 +272,13 @@ static bool perform_operation(char op) {
         break;
     }
 
+#if ENABLE_AUTOPUSH
+    push_number(&result);
+    clear_input();
+#else
     s_input_length = snprintf(s_input_buffer, INPUT_BUFFER_SIZE,
                               ""CALC_TYPE_FMT"", result);
+#endif
 
     return true;
 }
