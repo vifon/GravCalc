@@ -4,7 +4,7 @@
   "longName": "GravCalc",
   "companyName": "Wojciech 'vifon' Siewierski",
   "versionCode": 1,
-  "versionLabel": "1.0",
+  "versionLabel": "1.1",
   "watchapp": {
     "watchface": false
   },
@@ -12,6 +12,13 @@
     "dummy": 0
   },
   "resources": {
-    "media": []
+    "media": [
+      {
+        "menuIcon": true,
+        "type": "png",
+        "name": "IMAGE_MENU_ICON",
+        "file": "menu_icon.png"
+      }
+    ]
   }
 }
