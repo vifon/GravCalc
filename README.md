@@ -23,6 +23,8 @@ The calculator uses the
 INSTALLATION
 ------------
 
+Once you have the Pebble SDK set up, just run the following commands:
+
     $ make
     $ export PEBBLE_PHONE=192.168.???.???   # (your phone's IP)
     $ make install
