@@ -495,7 +495,7 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
     graphics_draw_text(
         ctx,
         buffer,
-        fonts_get_system_font(FONT_KEY_GOTHIC_24),
+        fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
         bounds,
         GTextOverflowModeTrailingEllipsis,
         GTextAlignmentRight,
