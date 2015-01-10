@@ -59,10 +59,13 @@ static bool s_editing_fractional_part = false;
 /** Height of the input box. */
 #define INPUT_BOX_HEIGHT 28
 
+/** Height of the keypad. */
+#define KEYPAD_HEIGHT ((SCREEN_H) - (INPUT_BOX_HEIGHT))
+
 /** The current position of the cursor. */
 static GPoint s_cursor_position =
 {SCREEN_W / 2,
- SCREEN_H / 2};
+ KEYPAD_HEIGHT / 2};
 
 /** Text on the keypads. Only unique 1-character strings allowed. */
 static const char s_keypad_text[][2] =
@@ -534,7 +537,7 @@ static void main_window_load(Window *window) {
     /* Create the layer with the keypad etc. */
     s_keypad_layer = layer_create(
         GRect(0, INPUT_BOX_HEIGHT,
-              144, SCREEN_H-INPUT_BOX_HEIGHT));
+              144, KEYPAD_HEIGHT));
     layer_add_child(
         window_get_root_layer(window),
         s_keypad_layer);
@@ -554,8 +557,9 @@ static void main_window_load(Window *window) {
         draw_input_callback);
 
     /* Create the topmost layer with the cursor. */
-    s_cursor_layer = layer_create(GRect(0, INPUT_BOX_HEIGHT,
-                                        144, SCREEN_H-INPUT_BOX_HEIGHT));
+    s_cursor_layer = layer_create(
+        GRect(0, INPUT_BOX_HEIGHT,
+              144, KEYPAD_HEIGHT));
     layer_add_child(
         window_get_root_layer(window),
         s_cursor_layer);
@@ -608,8 +612,8 @@ static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_sa
 
     if (s_cursor_position.y < 0) {
         s_cursor_position.y = 0;
-    } else if (s_cursor_position.y > SCREEN_H-INPUT_BOX_HEIGHT) {
-        s_cursor_position.y = SCREEN_H-INPUT_BOX_HEIGHT;
+    } else if (s_cursor_position.y > KEYPAD_HEIGHT) {
+        s_cursor_position.y = KEYPAD_HEIGHT;
     }
 
     layer_mark_dirty(s_cursor_layer);
