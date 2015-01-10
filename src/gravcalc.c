@@ -78,7 +78,7 @@ static const char s_keypad_text[][2] =
 {"7", "8", "9", "+",
  "4", "5", "6", "-",
  "1", "2", "3", "*",
- "0", ".", "N", "/"};
+ "0", ".", "^", "/"};
 
 /* Variables with colors for easy swapping. */
 static const GColor main_color = GColorBlack;
@@ -127,6 +127,25 @@ static int str_to_int(const char *str, char **endptr) {
 static float str_to_float(const char *str) {
     /* TODO */
     return 0.0;
+}
+
+/** A simple implementation of the <tt>pow(3)</tt> standard function.
+ *
+ *  @param base
+ *  @param exponent
+ *
+ *  @return The exponentiation result.
+ *
+ *  @note The exponent must not be negative!
+ */
+static CALC_TYPE my_pow(CALC_TYPE base, int exponent) {
+    CALC_TYPE result = 1;
+
+    while (exponent--) {
+        result *= base;
+    }
+
+    return result;
 }
 
 /** Calculate the coordinates and bounds of the n-th calculator button
@@ -250,7 +269,7 @@ static bool perform_operation(char op) {
         return false;
     }
 
-    CALC_TYPE lhs = s_calculator_stack[--s_calculator_stack_index];
+    CALC_TYPE lhs = s_calculator_stack[s_calculator_stack_index-1];
     CALC_TYPE rhs = str_to_int(s_input_buffer, NULL);
 
     CALC_TYPE result;
@@ -267,10 +286,19 @@ static bool perform_operation(char op) {
     case '/':
         result = lhs / rhs;
         break;
+    case '^':
+        if (rhs < 0) {
+            /* negative exponents are not supported */
+            return false;
+        }
+        result = my_pow(lhs, rhs);
+        break;
     default:
         result = 0;
         break;
     }
+
+    --s_calculator_stack_index;
 
 #if ENABLE_AUTOPUSH
     push_number(&result);
@@ -351,10 +379,8 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
                     }
                 case '*':
                 case '/':
+                case '^':
                     perform_operation(clicked_text[0]);
-                    break;
-                case 'N':
-                    validate_and_append_to_input_buffer('-');
                     break;
                 default:
                     APP_LOG(APP_LOG_LEVEL_DEBUG, "%s","Should never be reached.");
