@@ -11,5 +11,11 @@ install: all
 doc:
 	doxygen Doxyfile
 
+test:
+	make -C tests
+
+runtest: test
+	./tests/unittests
+
 clean:
 	rm -rf build
