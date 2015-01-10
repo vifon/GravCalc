@@ -332,7 +332,6 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
             /* ...or operator. */
             else {
                 switch (clicked_text[0]) {
-                case '+':
                 case '-':
                     /* If we're at the beginning of the buffer, just
                      * negate the number as the subtraction would be a
@@ -343,6 +342,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
                         validate_and_append_to_input_buffer('-');
                         break;
                     }
+                case '+':
                 case '*':
                 case '/':
                 case '^':
