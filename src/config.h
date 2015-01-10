@@ -2,6 +2,9 @@
 #ifndef _h_CONFIG_
 #define _h_CONFIG_
 
-#define ENABLE_AUTOPUSH 0
+/** Performing an operation automatically pushes the result to the
+ *  stack instead of storing it in the editing buffer.
+ */
+#define ENABLE_AUTOPUSH 1
 
 #endif
