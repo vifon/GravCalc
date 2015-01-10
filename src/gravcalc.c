@@ -371,8 +371,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
                 case '-':
                     /* If we're at the beginning of the buffer, just
                      * negate the number as the subtraction would be a
-                     * NOOP anyway. The reverse operation utilizes
-                     * this very property. */
+                     * NOOP anyway. The reverse operation works by
+                     * accident thanks to this very property, when the
+                     * AUTOPUSH is enabled. */
                     if (s_input_length == 0) {
                         validate_and_append_to_input_buffer('-');
                         break;
