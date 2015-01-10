@@ -341,6 +341,14 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
                 switch (clicked_text[0]) {
                 case '+':
                 case '-':
+                    /* If we're at the beginning of the buffer, just
+                     * negate the number as the subtraction would be a
+                     * NOOP anyway. The reverse operation utilizes
+                     * this very property. */
+                    if (s_input_length == 0) {
+                        validate_and_append_to_input_buffer('-');
+                        break;
+                    }
                 case '*':
                 case '/':
                     perform_operation(clicked_text[0]);
