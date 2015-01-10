@@ -218,7 +218,7 @@ static bool perform_operation(char op) {
             /* negative exponents are not supported */
             return false;
         }
-        result = fixed_pow(lhs, rhs);
+        result = fixed_pow(lhs, rhs / FIXED_SCALE);
         break;
     default:
         result = 0;

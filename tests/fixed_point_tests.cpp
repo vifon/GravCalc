@@ -42,6 +42,17 @@ TEST_CASE("subtraction", "[fixed-point]")
     CHECK(fixed_subt(-1234, -5739) == 4505);
 }
 
+TEST_CASE("exponent", "[fixed-point]")
+{
+    CHECK(fixed_pow(12300, 0) == 100);
+    CHECK(fixed_pow(-12300, 0) == 100);
+    CHECK(fixed_pow(0, 0) == 100);
+    CHECK(fixed_pow(200, 3) == 800);
+    CHECK(fixed_pow(-200, 3) == -800);
+    CHECK(fixed_pow(250, 2) == 625);
+    CHECK(fixed_pow(-250, 2) == 625);
+}
+
 TEST_CASE("text representation", "[fixed-point]")
 {
     char buffer[64];

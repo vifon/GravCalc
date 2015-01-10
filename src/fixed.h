@@ -156,7 +156,7 @@ static fixed str_to_fixed(const char *str) {
  *  @note The exponent must not be negative!
  */
 fixed fixed_pow(fixed base, int exponent) {
-    fixed result = 1;
+    fixed result = FIXED_SCALE;
 
     while (exponent--) {
         result = fixed_mult(result, base);
