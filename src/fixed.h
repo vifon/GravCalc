@@ -25,6 +25,8 @@
 #ifndef _h_FIXED_
 #define _h_FIXED_
 
+#include "utility.h"
+
 /** The underlying fixed point representation. */
 typedef int fixed;
 
@@ -94,9 +96,16 @@ char* fixed_repr(fixed fixed, char* buffer, size_t size)
     int fractional_part = abs(fixed) % FIXED_SCALE;
 
     if (fractional_part != 0) {
-        snprintf(buffer, size,
-                 "%s%d.%02u",
-                 sign, integal_part, fractional_part);
+        int n = snprintf(buffer, size,
+                         "%s%d.%02u",
+                         sign, integal_part, fractional_part);
+
+        /* Remove the trailing zeros. */
+        if (fractional_part >= 10 &&
+            fractional_part % 10 == 0) {
+
+            buffer[n-1] = '\0';
+        }
     } else {
         snprintf(buffer, size,
                  "%s%d",
@@ -104,6 +113,56 @@ char* fixed_repr(fixed fixed, char* buffer, size_t size)
     }
 
     return buffer;
+}
+
+/** Convert a string to a fixed point number.
+ *
+ *  @param str String to convert.
+ *
+ *  @return The converted fixed point number.
+ */
+static fixed str_to_fixed(const char *str) {
+    char *fractional_start;
+    char *endptr;
+
+    int sign = 1;
+    if (*str == '-') {
+        ++str;
+        sign = -1;
+    }
+
+    int integral_part = str_to_int(str, &fractional_start, -1) * FIXED_SCALE;
+    if (fractional_start != '\0') {
+        ++fractional_start;
+    }
+    int fractional_part = str_to_int(fractional_start, &endptr, 2);
+
+    if (endptr - fractional_start == 1) {
+        /* There was only one digit -- higher order of magnitude. */
+        fractional_part *= 10;
+    }
+
+    return sign * (integral_part + fractional_part);
+}
+
+/** A simple implementation of the <tt>pow(3)</tt> standard function
+ * for fixed point numbers.
+ *
+ *  @param base
+ *  @param exponent
+ *
+ *  @return The exponentiation result.
+ *
+ *  @note The exponent must not be negative!
+ */
+fixed fixed_pow(fixed base, int exponent) {
+    fixed result = 1;
+
+    while (exponent--) {
+        result = fixed_mult(result, base);
+    }
+
+    return result;
 }
 
 #endif

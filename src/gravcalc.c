@@ -25,6 +25,8 @@
 
 #include <pebble.h>
 
+#include "fixed.h"
+
 static Window *s_main_window;
 
 /** Number of keys on the calculator keypad. */
@@ -37,22 +39,11 @@ static Layer *s_input_layer;
 /** The layer with the cursor. Has identical bounds as @ref s_input_layer. */
 static Layer *s_cursor_layer;
 
-/** Size of the calculator stack (@ref s_calculator_stack). */
-#define CALC_STACK_SIZE 64
-/** Numeric type used for the calculations.
- *
- *  TODO Switch to fixed-point as floats are not really supported.
- */
-#define CALC_TYPE int
-/** @p printf format specifier for @ref CALC_TYPE. */
-#define CALC_TYPE_FMT "%d"
 /** Calculations stack. */
 static CALC_TYPE s_calculator_stack[CALC_STACK_SIZE];
 /** Currently used stack slots in @ref s_calculator_stack. */
 static unsigned int s_calculator_stack_index = 0;
 
-/** Size of the input buffer (@ref s_input_buffer). */
-#define INPUT_BUFFER_SIZE 32
 /** The input buffer for the number. */
 static char s_input_buffer[INPUT_BUFFER_SIZE] = "";
 /** Currenly used space in the input buffer (@ref s_input_buffer) */
@@ -83,70 +74,6 @@ static const char s_keypad_text[][2] =
 /* Variables with colors for easy swapping. */
 static const GColor main_color = GColorBlack;
 static const GColor secondary_color = GColorClear;
-
-/** @defgroup helpers
- *  @brief Helper functions.
- */
-
-/** Convert a string to integer.
- *
- *  @param str String to convert.
- *  @param[out] endptr If non-NULL, set to the first invalid character.
- *
- *  @return The converted integer.
- */
-static int str_to_int(const char *str, char **endptr) {
-    int result = 0;
-
-    int sign = 1;
-    if (*str == '-') {
-        ++str;
-        sign = -1;
-    }
-
-    while (*str >= '0' && *str <= '9') {
-        result *= 10;
-        result += *str++ - '0';
-    }
-
-    /* save the position of the first invalid character */
-    if (endptr != NULL) {
-        /* http://stackoverflow.com/questions/993700/are-strtol-strtod-unsafe */
-        *endptr = (char*)str;
-    }
-
-    return sign * result;
-}
-
-/** Convert a string to float.
- *
- *  @param str String to convert.
- *
- *  @return The converted float.
- */
-static float str_to_float(const char *str) {
-    /* TODO */
-    return 0.0;
-}
-
-/** A simple implementation of the <tt>pow(3)</tt> standard function.
- *
- *  @param base
- *  @param exponent
- *
- *  @return The exponentiation result.
- *
- *  @note The exponent must not be negative!
- */
-static CALC_TYPE my_pow(CALC_TYPE base, int exponent) {
-    CALC_TYPE result = 1;
-
-    while (exponent--) {
-        result *= base;
-    }
-
-    return result;
-}
 
 /** Calculate the coordinates and bounds of the n-th calculator button
  *  relative to the upper upper left corner of the layer.
@@ -181,8 +108,6 @@ static GRect get_rect_for_button(unsigned int button_index) {
 
     return bounds;
 }
-
-/** @}  */
 
 /** @defgroup calculator Calculator functions
  *  @brief Calculator stack and input buffer management
@@ -228,7 +153,7 @@ static bool push_number(CALC_TYPE *number) {
     CALC_TYPE *slot = &s_calculator_stack[s_calculator_stack_index++];
 
     if (number == NULL) {
-        *slot = str_to_int(s_input_buffer, NULL);
+        *slot = str_to_fixed(s_input_buffer);
         clear_input();
     } else {
         *slot = *number;
@@ -246,10 +171,12 @@ static void pop_number(bool edit) {
 
     if (edit) {
         if (s_calculator_stack[s_calculator_stack_index-1] != 0) {
+            char tmp[64];
+            fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp, 64);
             s_input_length = snprintf(
                 s_input_buffer, INPUT_BUFFER_SIZE,
                 ""CALC_TYPE_FMT"",
-                s_calculator_stack[s_calculator_stack_index-1]);
+                tmp);
         } else {
             /* A lone leading 0 is still a leading 0 (which is invalid). */
             clear_input();
@@ -270,28 +197,28 @@ static bool perform_operation(char op) {
     }
 
     CALC_TYPE lhs = s_calculator_stack[s_calculator_stack_index-1];
-    CALC_TYPE rhs = str_to_int(s_input_buffer, NULL);
+    CALC_TYPE rhs = str_to_fixed(s_input_buffer);
 
     CALC_TYPE result;
     switch (op) {
     case '+':
-        result = lhs + rhs;
+        result = fixed_add(lhs, rhs);
         break;
     case '-':
-        result = lhs - rhs;
+        result = fixed_subt(lhs, rhs);
         break;
     case '*':
-        result = lhs * rhs;
+        result = fixed_mult(lhs, rhs);
         break;
     case '/':
-        result = lhs / rhs;
+        result = fixed_div(lhs, rhs);
         break;
     case '^':
         if (rhs < 0) {
             /* negative exponents are not supported */
             return false;
         }
-        result = my_pow(lhs, rhs);
+        result = fixed_pow(lhs, rhs);
         break;
     default:
         result = 0;
@@ -311,7 +238,26 @@ static bool perform_operation(char op) {
     return true;
 }
 
-/** Add a new character to the input buffer (unless full).
+/** Add a new character to the input buffer without any validation.
+ *
+ *  @param new_character The character to append.
+ *
+ *  @note Should never be called directly. Rather call @ref
+ *  validate_and_append_to_input_buffer.
+ */
+static void append_to_input_buffer(char new_character) {
+    s_input_buffer[s_input_length++] = new_character;
+    s_input_buffer[s_input_length]   = '\0';
+}
+
+/** Validate and perhaps add a new character to the input buffer.
+ *
+ *  Validation:
+ *  - input buffer cannot be full,
+ *  - no leading zeros allowed...,
+ *  - ...unless just before the decimal point, in which case it is
+ *    automatically added,
+ *  - minus sign allowed only at the beginning.
  *
  *  @param new_character The character to append.
  */
@@ -323,14 +269,33 @@ static void validate_and_append_to_input_buffer(char new_character) {
         return;                 /* no leading zeros */
     }
     if (s_input_length == 0 && new_character == '.') {
-        validate_and_append_to_input_buffer('.');
+        append_to_input_buffer('0');
     }
     if (s_input_length != 0 && new_character == '-') {
         return;
     }
 
-    s_input_buffer[s_input_length++] = new_character;
-    s_input_buffer[s_input_length]   = '\0';
+    append_to_input_buffer(new_character);
+}
+
+/** Delete a single character from the input buffer.
+ *
+ *  @note In case of the string "0." it deletes two charactes to
+ *  prevent a lone leading zero.
+ *
+ *  @note It does @b not check whether the input buffer is empty.
+ */
+static void delete_from_input_buffer() {
+    if (s_input_buffer[--s_input_length] == '.') {
+        if (s_input_length == 1 && s_input_buffer[s_input_length-1] == '0') {
+            /* Ugly corner case: inserting "0." and deleting "."
+             * would allow a leading zero. Delete both to prevent
+             * it. */
+            --s_input_length;
+        }
+        switch_edited_fraction_part(false);
+    }
+    s_input_buffer[s_input_length] = '\0';
 }
 
 /** @}  */
@@ -395,11 +360,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
  */
 static void cancel_click_handler(ClickRecognizerRef recognizer, void *context) {
     if (s_input_length > 0) {
-        --s_input_length;
-        if (s_input_buffer[s_input_length] == '.') {
-            switch_edited_fraction_part(false);
-        }
-        s_input_buffer[s_input_length] = '\0';
+        delete_from_input_buffer();
     } else {
         pop_number(true);
     }
@@ -498,32 +459,39 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
 
     char buffer[64];
     switch (s_calculator_stack_index) {
+        char tmp1[64];
+        char tmp2[64];
     case 0:
         snprintf(buffer, 64,
                  "%s",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 1:
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp1, 64);
         snprintf(buffer, 64,
                  ""CALC_TYPE_FMT" %s %s",
-                 s_calculator_stack[s_calculator_stack_index-1],
+                 tmp1,
                  "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 2:
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp1, 64);
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], tmp2, 64);
         snprintf(buffer, 64,
                  ""CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
-                 s_calculator_stack[s_calculator_stack_index-2],
-                 s_calculator_stack[s_calculator_stack_index-1],
+                 tmp2,
+                 tmp1,
                  "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     default:
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp1, 64);
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], tmp2, 64);
         snprintf(buffer, 64,
                  "[%u]... "CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
                  s_calculator_stack_index,
-                 s_calculator_stack[s_calculator_stack_index-2],
-                 s_calculator_stack[s_calculator_stack_index-1],
+                 tmp2,
+                 tmp1,
                  "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;

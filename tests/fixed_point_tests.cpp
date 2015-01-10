@@ -1,6 +1,7 @@
 // File: fixed_point_tests.cpp
 
 #include <string>
+#include <iostream>
 
 #include <catch.hpp>
 
@@ -58,9 +59,28 @@ TEST_CASE("text representation", "[fixed-point]")
     repr.assign(fixed_repr(1, buffer, sizeof(buffer)));
     CHECK(repr == "0.01");
 
+    repr.assign(fixed_repr(10, buffer, sizeof(buffer)));
+    CHECK(repr == "0.1");
+
+    repr.assign(fixed_repr(230, buffer, sizeof(buffer)));
+    CHECK(repr == "2.3");
+
     repr.assign(fixed_repr(21, buffer, sizeof(buffer)));
     CHECK(repr == "0.21");
 
     repr.assign(fixed_repr(-21, buffer, sizeof(buffer)));
     CHECK(repr == "-0.21");
+}
+
+TEST_CASE("conversion from string", "[fixed-point]")
+{
+    CHECK(str_to_fixed("123.45") == 12345);
+    CHECK(str_to_fixed("123") == 12300);
+    CHECK(str_to_fixed("123.00") == 12300);
+    CHECK(str_to_fixed("123.10") == 12310);
+    CHECK(str_to_fixed("123.1") == 12310);
+    CHECK(str_to_fixed("123.01") == 12301);
+    CHECK(str_to_fixed("-123.01") == -12301);
+    CHECK(str_to_fixed("-0.21") == -21);
+    CHECK(str_to_fixed("0.21") == 21);
 }
