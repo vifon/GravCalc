@@ -572,10 +572,33 @@ static void main_window_unload(Window *window) {
 
 /** Read the data from the accelerometer and then move the cursor
  *  (@ref s_cursor_position) according to them.
+ *
+ *  @note On the first @ref CALIBRATION_SAMPLES calls only calibrate
+ *  the balance point of the accelerometer by calculating the average
+ *  value from them.
  */
 static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_samples) {
-    s_cursor_position.x +=  data[0].x * (SCREEN_W / 4000.f);
-    s_cursor_position.y += -data[0].y * (SCREEN_H / 4000.f);
+    static int samples_until_calibrated = CALIBRATION_SAMPLES;
+    static int zero_x = 0;
+    static int zero_y = 0;
+
+    /* collect the sample for calibration */
+    if (samples_until_calibrated > 0) {
+        --samples_until_calibrated;
+        zero_x += data[0].x;
+        zero_y += data[0].y;
+        return;
+    }
+
+    /* all samples collected, calculate the average */
+    if (samples_until_calibrated == 0) {
+        --samples_until_calibrated;
+        zero_x /= CALIBRATION_SAMPLES;
+        zero_y /= CALIBRATION_SAMPLES;
+    }
+
+    s_cursor_position.x +=  (data[0].x - zero_x) * (SCREEN_W / 4000.f);
+    s_cursor_position.y += -(data[0].y - zero_y) * (SCREEN_H / 4000.f);
 
     if (s_cursor_position.x < 0) {
         s_cursor_position.x = 0;

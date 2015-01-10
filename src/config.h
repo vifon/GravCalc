@@ -17,4 +17,7 @@
 /** Size of the input buffer (@ref s_input_buffer). */
 #define INPUT_BUFFER_SIZE 32
 
+/** The number of samples used for the calibration at the startup */
+#define CALIBRATION_SAMPLES 10
+
 #endif
