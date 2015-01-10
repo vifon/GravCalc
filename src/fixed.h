@@ -132,7 +132,7 @@ static fixed str_to_fixed(const char *str) {
     }
 
     int integral_part = str_to_int(str, &fractional_start, -1) * FIXED_SCALE;
-    if (fractional_start != '\0') {
+    if (*fractional_start != '\0') {
         ++fractional_start;
     }
     int fractional_part = str_to_int(fractional_start, &endptr, 2);
