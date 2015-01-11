@@ -32,6 +32,19 @@ static Window *s_main_window;
 /** Number of keys on the calculator keypad. */
 #define KEY_COUNT 16
 
+/** Number of switchable keypads */
+#define KEYPAD_COUNT 1
+
+/** Text on the keypads. Only unique 1-character strings allowed. */
+static const char s_keypad_text[KEYPAD_COUNT][KEY_COUNT][2] =
+{{"7", "8", "9", "+",
+  "4", "5", "6", "-",
+  "1", "2", "3", "*",
+  "0", ".", "^", "/"}};
+
+/** Index of the currently used keypad. */
+static size_t s_current_keypad = 0;
+
 /** The layer with the keys and their borders. */
 static Layer *s_keypad_layer;
 /** The layer with the current input, the stack state and their background. */
@@ -66,13 +79,6 @@ static bool s_editing_fractional_part = false;
 static GPoint s_cursor_position =
 {SCREEN_W / 2,
  KEYPAD_HEIGHT / 2};
-
-/** Text on the keypads. Only unique 1-character strings allowed. */
-static const char s_keypad_text[][2] =
-{"7", "8", "9", "+",
- "4", "5", "6", "-",
- "1", "2", "3", "*",
- "0", ".", "^", "/"};
 
 /* Variables with colors for easy swapping. */
 static const GColor main_color = GColorBlack;
@@ -110,6 +116,12 @@ static GRect get_rect_for_button(unsigned int button_index) {
         key_height);
 
     return bounds;
+}
+
+/** Switch to the next keypad.
+ */
+static void keypad_next() {
+    s_current_keypad = (s_current_keypad + 1) % KEYPAD_COUNT;
 }
 
 /** @defgroup calculator Calculator functions
@@ -320,7 +332,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 
         /* Check if it is the key that was clicked. */
         if (grect_contains_point(&bounds, &current_position)) {
-            const char* clicked_text = s_keypad_text[i];
+            const char* clicked_text = s_keypad_text[s_current_keypad][i];
 
             /* Check if it was the number key... */
             if (clicked_text[0] >= '0' && clicked_text[0] <= '9') {
@@ -350,6 +362,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
                 case '/':
                 case '^':
                     perform_operation(clicked_text[0]);
+                    break;
+                case ' ':
+                    /* ignore */
                     break;
                 default:
                     APP_LOG(APP_LOG_LEVEL_DEBUG, "%s","Should never be reached.");
@@ -388,6 +403,12 @@ static void push_click_handler(ClickRecognizerRef recognizer, void *context) {
     push_number(NULL);
 }
 
+/** Handler for the button used switching the used keypad.
+ */
+static void switch_keypad_handler(ClickRecognizerRef recognizer, void *context) {
+    keypad_next();
+}
+
 /** @} */
 
 /** Set the button handlers.
@@ -397,15 +418,17 @@ static void push_click_handler(ClickRecognizerRef recognizer, void *context) {
  *  <b>Middle</b>: push to the stack<br />
  *  <b>Middle long</b>: empty the stack<br />
  *  <b>Lower</b>: click / confirm<br />
+ *  <b>Lower long</b>: switch the keypad<br />
  */
 static void click_config_provider(void *context) {
     window_single_click_subscribe(BUTTON_ID_UP, cancel_click_handler);
     window_long_click_subscribe(BUTTON_ID_UP, 500, clear_input_click_handler, NULL);
 
-    window_long_click_subscribe(BUTTON_ID_SELECT, 1000, empty_stack_click_handler, NULL);
     window_single_click_subscribe(BUTTON_ID_SELECT, push_click_handler);
+    window_long_click_subscribe(BUTTON_ID_SELECT, 1000, empty_stack_click_handler, NULL);
 
     window_single_click_subscribe(BUTTON_ID_DOWN, select_click_handler);
+    window_long_click_subscribe(BUTTON_ID_DOWN, 500, switch_keypad_handler, NULL);
 }
 
 /** @defgroup redraw
@@ -425,30 +448,34 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
 
     unsigned int i;
     for (i = 0; i < KEY_COUNT; ++i) {
-        GRect bounds = get_rect_for_button(i);
+        /* ignore the keys marked with a space */
+        if (s_keypad_text[s_current_keypad][i][0] != ' ') {
 
-        bool active = grect_contains_point(&bounds, &s_cursor_position);
+            GRect bounds = get_rect_for_button(i);
 
-        if (active) {
-            /* invert colors */
-            graphics_context_set_text_color(ctx, main_color);
-            graphics_context_set_fill_color(ctx, secondary_color);
-            graphics_fill_rect(ctx, bounds, 1, GCornerNone);
-        } else {
-            graphics_draw_rect(ctx, bounds);
-        }
+            bool active = grect_contains_point(&bounds, &s_cursor_position);
 
-        graphics_draw_text(
-            ctx,
-            s_keypad_text[i],
-            font,
-            bounds,
-            GTextOverflowModeTrailingEllipsis,
-            GTextAlignmentCenter,
-            NULL);
-        if (active) {
-            /* cleanup */
-            graphics_context_set_text_color(ctx, secondary_color);
+            if (active) {
+                /* invert colors */
+                graphics_context_set_text_color(ctx, main_color);
+                graphics_context_set_fill_color(ctx, secondary_color);
+                graphics_fill_rect(ctx, bounds, 1, GCornerNone);
+            } else {
+                graphics_draw_rect(ctx, bounds);
+            }
+
+            graphics_draw_text(
+                ctx,
+                s_keypad_text[s_current_keypad][i],
+                font,
+                bounds,
+                GTextOverflowModeTrailingEllipsis,
+                GTextAlignmentCenter,
+                NULL);
+            if (active) {
+                /* cleanup */
+                graphics_context_set_text_color(ctx, secondary_color);
+            }
         }
     }
 }
