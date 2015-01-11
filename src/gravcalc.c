@@ -283,8 +283,17 @@ static void validate_and_append_to_input_buffer(char new_character) {
     if (s_input_length == 0 && new_character == '0') {
         return;                 /* no leading zeros */
     }
-    if (s_input_length == 0 && new_character == '.') {
-        append_to_input_buffer('0');
+    if (new_character == '.') {
+        /* Ugny corner cases: Inserting '.' at the beginning of the
+         * buffer or just after a minus sign should automatically
+         * insert a zero. The deleting function must take case of that
+         * case too. */
+        if ((s_input_length == 0) ||
+            (s_input_length == 1 &&
+             s_input_buffer[s_input_length-1] == '-')) {
+
+            append_to_input_buffer('0');
+        }
     }
     if (s_input_length != 0 && new_character == '-') {
         return;
@@ -302,10 +311,13 @@ static void validate_and_append_to_input_buffer(char new_character) {
  */
 static void delete_from_input_buffer() {
     if (s_input_buffer[--s_input_length] == '.') {
-        if (s_input_length == 1 && s_input_buffer[s_input_length-1] == '0') {
-            /* Ugly corner case: inserting "0." and deleting "."
-             * would allow a leading zero. Delete both to prevent
-             * it. */
+        if ((s_input_length == 1 && s_input_buffer[s_input_length-1] == '0') ||
+            (s_input_length == 2 &&
+             s_input_buffer[s_input_length-1] == '0' &&
+             s_input_buffer[s_input_length-2] == '-')) {
+            /* Ugly corner case: inserting "0." and deleting "." would
+             * allow a leading zero. Delete both to prevent it. Do the
+             * same with "-0." too. */
             --s_input_length;
         }
         switch_edited_fraction_part(false);
