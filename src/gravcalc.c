@@ -462,40 +462,35 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
 
     char buffer[64];
     switch (s_calculator_stack_index) {
-        char tmp1[64];
-        char tmp2[64];
+        char lhs[32];
+        char rhs[32];
     case 0:
-        snprintf(buffer, 64,
+        snprintf(buffer, sizeof(buffer),
                  "%s",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 1:
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp1, 64);
-        snprintf(buffer, 64,
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
+        snprintf(buffer, sizeof(buffer),
                  ""CALC_TYPE_FMT" %s %s",
-                 tmp1,
-                 "_",
+                 lhs, "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 2:
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp1, 64);
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], tmp2, 64);
-        snprintf(buffer, 64,
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], rhs, sizeof(rhs));
+        snprintf(buffer, sizeof(buffer),
                  ""CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
-                 tmp2,
-                 tmp1,
-                 "_",
+                 rhs, lhs, "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     default:
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp1, 64);
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], tmp2, 64);
-        snprintf(buffer, 64,
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
+        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], rhs, sizeof(rhs));
+        snprintf(buffer, sizeof(buffer),
                  "[%u]... "CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
                  s_calculator_stack_index,
-                 tmp2,
-                 tmp1,
-                 "_",
+                 rhs, lhs, "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     }
