@@ -187,7 +187,7 @@ static void pop_number(bool edit) {
     if (edit) {
         if (s_calculator_stack[s_calculator_stack_index-1] != 0) {
             char tmp[64];
-            fixed_repr(s_calculator_stack[s_calculator_stack_index-1], tmp, 64);
+            REPR(s_calculator_stack[s_calculator_stack_index-1], tmp, 64);
             s_input_length = snprintf(
                 s_input_buffer, INPUT_BUFFER_SIZE,
                 ""CALC_TYPE_FMT"",
@@ -217,23 +217,23 @@ static bool perform_operation(char op) {
     CALC_TYPE result;
     switch (op) {
     case '+':
-        result = fixed_add(lhs, rhs);
+        result = ADD(lhs, rhs);
         break;
     case '-':
-        result = fixed_subt(lhs, rhs);
+        result = SUBT(lhs, rhs);
         break;
     case '*':
-        result = fixed_mult(lhs, rhs);
+        result = MULT(lhs, rhs);
         break;
     case '/':
-        result = fixed_div(lhs, rhs);
+        result = DIV(lhs, rhs);
         break;
     case '^':
         if (rhs < 0) {
             /* negative exponents are not supported */
             return false;
         }
-        result = fixed_pow(lhs, rhs / FIXED_SCALE);
+        result = POW(lhs, rhs / FIXED_SCALE);
         break;
     default:
         result = 0;
@@ -497,23 +497,23 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 1:
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
+        REPR(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
         snprintf(buffer, sizeof(buffer),
                  ""CALC_TYPE_FMT" %s %s",
                  lhs, "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     case 2:
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], rhs, sizeof(rhs));
+        REPR(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
+        REPR(s_calculator_stack[s_calculator_stack_index-2], rhs, sizeof(rhs));
         snprintf(buffer, sizeof(buffer),
                  ""CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
                  rhs, lhs, "_",
                  s_input_length > 0 ? s_input_buffer : "0");
         break;
     default:
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
-        fixed_repr(s_calculator_stack[s_calculator_stack_index-2], rhs, sizeof(rhs));
+        REPR(s_calculator_stack[s_calculator_stack_index-1], lhs, sizeof(lhs));
+        REPR(s_calculator_stack[s_calculator_stack_index-2], rhs, sizeof(rhs));
         snprintf(buffer, sizeof(buffer),
                  "[%u]... "CALC_TYPE_FMT"  "CALC_TYPE_FMT" %s %s",
                  s_calculator_stack_index,
