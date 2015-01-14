@@ -121,9 +121,10 @@ char* fixed_repr(fixed fixed, char* buffer, size_t size)
  *
  *  @return The converted fixed point number.
  */
-static fixed str_to_fixed(const char *str) {
-    char *fractional_start;
-    char *endptr;
+static fixed str_to_fixed(const char* str)
+{
+    char* fractional_start;
+    char* endptr;
 
     int sign = 1;
     if (*str == '-') {
@@ -155,7 +156,8 @@ static fixed str_to_fixed(const char *str) {
  *
  *  @note The exponent must not be negative!
  */
-fixed fixed_pow(fixed base, int exponent) {
+fixed fixed_pow(fixed base, int exponent)
+{
     fixed result = FIXED_SCALE;
 
     while (exponent--) {
