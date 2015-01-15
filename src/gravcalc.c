@@ -64,6 +64,9 @@ static size_t s_input_length = 0;
 /** Flag marking whether inserting a comma should be allowed. */
 static bool s_editing_fractional_part = false;
 
+/** Pointer to the error message. */
+static const char* s_error_msg = 0;
+
 /** Width of the screen. */
 #define SCREEN_W 144
 /** Height of the screen minus the statusbar (168px - 16px). */
@@ -150,6 +153,14 @@ static void clear_input() {
     s_input_length = 0;
     s_input_buffer[0] = '\0';
     switch_edited_fraction_part(false);
+}
+
+/** Set the error message to be shown.
+ *
+ *  @param msg Error message. Pass NULL to disable.
+ */
+static void set_error(const char* msg) {
+    s_error_msg = msg;
 }
 
 /** Push the passed number or the value in @ref s_input_buffer to the
@@ -344,6 +355,8 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 
         /* Check if it is the key that was clicked. */
         if (grect_contains_point(&bounds, &current_position)) {
+            set_error(NULL);
+
             const char* clicked_text = s_keypad_text[s_current_keypad][i];
 
             /* Check if it was the number key... */
@@ -389,6 +402,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 /** Handler for the button used for deleting the digits and poping the stack.
  */
 static void cancel_click_handler(ClickRecognizerRef recognizer, void *context) {
+    set_error(NULL);
     if (s_input_length > 0) {
         delete_from_input_buffer();
     } else {
@@ -399,12 +413,14 @@ static void cancel_click_handler(ClickRecognizerRef recognizer, void *context) {
 /** Handler for the button used for clearing the whole input buffer.
  */
 static void clear_input_click_handler(ClickRecognizerRef recognizer, void *context) {
+    set_error(NULL);
     clear_input();
 }
 
 /** Handler for the button used for emptying the whole calculator stack.
  */
 static void empty_stack_click_handler(ClickRecognizerRef recognizer, void *context) {
+    set_error(NULL);
     clear_input();
     s_calculator_stack_index = 0;
 }
@@ -412,12 +428,14 @@ static void empty_stack_click_handler(ClickRecognizerRef recognizer, void *conte
 /** Handler for the button used for pushing the current input to stack.
  */
 static void push_click_handler(ClickRecognizerRef recognizer, void *context) {
+    set_error(NULL);
     push_number(NULL);
 }
 
 /** Handler for the button used switching the used keypad.
  */
 static void switch_keypad_handler(ClickRecognizerRef recognizer, void *context) {
+    set_error(NULL);
     keypad_next();
 }
 
@@ -492,7 +510,8 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
     }
 }
 
-/** Draw the current input the stack information and their background.
+/** Draw the current input the stack information and the background.
+ *  Additionally display the error message, if any.
  */
 static void draw_input_callback(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, secondary_color);
@@ -537,6 +556,9 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
     /* create the text margin */
     GRect bounds = layer_get_bounds(layer);
     bounds.origin.x += 5;
+    if (s_error_msg) {
+        bounds.origin.y += 1;
+    }
     bounds.size.w -= 10;
 
     graphics_draw_text(
@@ -547,6 +569,22 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
         GTextOverflowModeTrailingEllipsis,
         GTextAlignmentRight,
         NULL);
+
+    if (s_error_msg) {
+        GRect bounds = layer_get_bounds(layer);
+        bounds.origin.x += 5;
+        bounds.origin.y -= 4;
+        bounds.size.w -= 10;
+
+        graphics_draw_text(
+            ctx,
+            s_error_msg,
+            fonts_get_system_font(FONT_KEY_GOTHIC_14),
+            bounds,
+            GTextOverflowModeTrailingEllipsis,
+            GTextAlignmentLeft,
+            NULL);
+    }
 }
 
 /** Draw the cursor with an outline. */
