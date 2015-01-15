@@ -19,7 +19,7 @@
 /** Concatenate two symbols with an underline in-between.
  *
  *  @note This macro is necessary to force the macro expansion of the
- *  arguments by the callee, as the symbols/arguments used in the ##
+ *  arguments by the caller, as the symbols/arguments used in the ##
  *  operator are not expanded.
  */
 #define CONCAT_SYMBOLS(P1, P2) P1##_##P2
