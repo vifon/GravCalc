@@ -4,7 +4,7 @@ GravCalc
 Accelerometer-based calculator for the Pebble smartwatch.
 
 [Pebble Appstore URL](https://apps.getpebble.com/applications/54afb90f413f38e0f8000054)  
-[Direct pebble:// URL](pebble://appstore/54afb90f413f38e0f8000054)
+Direct URL: pebble://appstore/54afb90f413f38e0f8000054
 
 Run `make doc` to generate the documentation with Doxygen.
 
