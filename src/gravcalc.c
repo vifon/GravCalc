@@ -336,6 +336,49 @@ static void delete_from_input_buffer() {
     s_input_buffer[s_input_length] = '\0';
 }
 
+/** Perform the operation associated with the clicked button.
+ *
+ *  @param button_text The single character displayed on the button.
+ */
+static void click_button(char button_text) {
+    /* Check if it was the number key... */
+    if (button_text >= '0' && button_text <= '9') {
+        validate_and_append_to_input_buffer(button_text);
+    }
+    /* ...or the decimal point... */
+    else if (button_text == '.') {
+        if (switch_edited_fraction_part(true)) {
+            validate_and_append_to_input_buffer(button_text);
+        }
+    }
+    /* ...or operator. */
+    else {
+        switch (button_text) {
+        case '-':
+            /* If we're at the beginning of the buffer, just
+             * negate the number as the subtraction would be a
+             * NOOP anyway. The reverse operation works by
+             * accident thanks to this very property, when the
+             * AUTOPUSH is enabled. */
+            if (s_input_length == 0) {
+                validate_and_append_to_input_buffer('-');
+                break;
+            }
+        case '+':
+        case '*':
+        case '/':
+        case '^':
+            perform_operation(button_text);
+            break;
+        case ' ':
+            /* ignore */
+            break;
+        default:
+            APP_LOG(APP_LOG_LEVEL_DEBUG, "%s","Should never be reached.");
+        }
+    }
+}
+
 /** @}  */
 
 /** @defgroup handlers Button handlers
@@ -357,44 +400,9 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
         if (grect_contains_point(&bounds, &current_position)) {
             set_error(NULL);
 
-            const char* clicked_text = s_keypad_text[s_current_keypad][i];
+            char clicked_text = s_keypad_text[s_current_keypad][i][0];
 
-            /* Check if it was the number key... */
-            if (clicked_text[0] >= '0' && clicked_text[0] <= '9') {
-                validate_and_append_to_input_buffer(clicked_text[0]);
-            }
-            /* ...or the decimal point... */
-            else if (clicked_text[0] == '.') {
-                if (switch_edited_fraction_part(true)) {
-                    validate_and_append_to_input_buffer(clicked_text[0]);
-                }
-            }
-            /* ...or operator. */
-            else {
-                switch (clicked_text[0]) {
-                case '-':
-                    /* If we're at the beginning of the buffer, just
-                     * negate the number as the subtraction would be a
-                     * NOOP anyway. The reverse operation works by
-                     * accident thanks to this very property, when the
-                     * AUTOPUSH is enabled. */
-                    if (s_input_length == 0) {
-                        validate_and_append_to_input_buffer('-');
-                        break;
-                    }
-                case '+':
-                case '*':
-                case '/':
-                case '^':
-                    perform_operation(clicked_text[0]);
-                    break;
-                case ' ':
-                    /* ignore */
-                    break;
-                default:
-                    APP_LOG(APP_LOG_LEVEL_DEBUG, "%s","Should never be reached.");
-                }
-            }
+            click_button(clicked_text);
         }
     }
 }
