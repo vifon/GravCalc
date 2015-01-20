@@ -169,7 +169,9 @@ static void set_error(const char* msg) {
  *  @param number Pointer to the number to be pushed. Pass NULL to
  *  read the value from the input buffer.
  *
- *  @return False if there is no space on the stack. True otherwise.
+ *  @return False if there is no space on the stack or the value is
+ *  out of range of the internal number representation. True
+ *  otherwise.
  */
 static bool push_number(CALC_TYPE *number) {
     if (s_calculator_stack_index >= CALC_STACK_SIZE) {
@@ -179,7 +181,12 @@ static bool push_number(CALC_TYPE *number) {
     CALC_TYPE *slot = &s_calculator_stack[s_calculator_stack_index++];
 
     if (number == NULL) {
-        *slot = str_to_fixed(s_input_buffer);
+        bool overflow = false;
+        *slot = str_to_fixed(s_input_buffer, &overflow);
+        if (overflow) {
+            set_error("OUT OF RANGE");
+            return false;
+        }
         clear_input();
     } else {
         *slot = *number;
@@ -215,40 +222,48 @@ static void pop_number(bool edit) {
  *
  *  @param op An operator used to decide which operation to perform.
  *
- *  @return False if the stack was empty. True otherwise.
+ *  @return False if the operation has been performed successfully.
  */
 static bool perform_operation(char op) {
     if (s_calculator_stack_index == 0) {
         return false;
     }
 
+    bool overflow = false;
+
     CALC_TYPE lhs = s_calculator_stack[s_calculator_stack_index-1];
-    CALC_TYPE rhs = str_to_fixed(s_input_buffer);
+    CALC_TYPE rhs = str_to_fixed(s_input_buffer, &overflow);
+
+    if (overflow) {
+        set_error("OVERFLOW");
+        return false;
+    }
 
     CALC_TYPE result;
     switch (op) {
     case '+':
-        result = ADD(lhs, rhs);
+        result = ADD(lhs, rhs, &overflow);
         break;
     case '-':
-        result = SUBT(lhs, rhs);
+        result = SUBT(lhs, rhs, &overflow);
         break;
     case '*':
-        result = MULT(lhs, rhs);
+        result = MULT(lhs, rhs, &overflow);
         break;
     case '/':
         result = DIV(lhs, rhs);
         break;
     case '^':
-        if (rhs < 0) {
-            /* negative exponents are not supported */
-            return false;
-        }
-        result = POW(lhs, rhs / FIXED_SCALE);
+        result = POW(lhs, fixed_to_int(rhs), &overflow);
         break;
     default:
         result = 0;
         break;
+    }
+
+    if (overflow) {
+        set_error("OVERFLOW");
+        return false;
     }
 
     --s_calculator_stack_index;

@@ -9,15 +9,38 @@
 
 TEST_CASE("multiplication", "[fixed-point]")
 {
-    CHECK(fixed_mult(10, 20) == 2);
-    CHECK(fixed_mult(1234, 5739) == 70819);
-    CHECK(fixed_mult(-1234, 5739) == -70819);
-    CHECK(fixed_mult(1234, -5739) == -70819);
-    CHECK(fixed_mult(-1234, -5739) == 70819);
-    CHECK(fixed_mult(99900, 99900) == 99800100);
-    CHECK(fixed_mult(-99900, 99900) == -99800100);
-    CHECK(fixed_mult(99900, -99900) == -99800100);
-    CHECK(fixed_mult(-99900, -99900) == 99800100);
+    bool overflow = false;
+
+    CHECK(fixed_mult(10, 20, &overflow) == 2);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(1234, 5739, &overflow) == 70819);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(-1234, 5739, &overflow) == -70819);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(1234, -5739, &overflow) == -70819);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(-1234, -5739, &overflow) == 70819);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(99900, 99900, &overflow) == 99800100);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(-99900, 99900, &overflow) == -99800100);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(99900, -99900, &overflow) == -99800100);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_mult(-99900, -99900, &overflow) == 99800100);
+    REQUIRE(overflow == false);
+
+    fixed_mult(999000, 999000, &overflow);
+    REQUIRE(overflow == true);
+    overflow = false;
 }
 
 TEST_CASE("division", "[fixed-point]")
@@ -30,29 +53,69 @@ TEST_CASE("division", "[fixed-point]")
 
 TEST_CASE("addition", "[fixed-point]")
 {
-    CHECK(fixed_add(1234, 5739) == 6973);
-    CHECK(fixed_add(1234, -5739) == -4505);
-    CHECK(fixed_add(-1234, 5739) == 4505);
-    CHECK(fixed_add(-1234, -5739) == -6973);
+    bool overflow = false;
+
+    CHECK(fixed_add(1234, 5739, &overflow) == 6973);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_add(1234, -5739, &overflow) == -4505);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_add(-1234, 5739, &overflow) == 4505);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_add(-1234, -5739, &overflow) == -6973);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_add(FIXED_MAX-1, 1, &overflow) == FIXED_MAX);
+    REQUIRE(overflow == false);
+
+    fixed_add(FIXED_MAX, 1, &overflow);
+    REQUIRE(overflow == true);
+    overflow = false;
 }
 
 TEST_CASE("subtraction", "[fixed-point]")
 {
-    CHECK(fixed_subt(1234, 5739) == -4505);
-    CHECK(fixed_subt(1234, -5739) == 6973);
-    CHECK(fixed_subt(-1234, 5739) == -6973);
-    CHECK(fixed_subt(-1234, -5739) == 4505);
+    bool overflow = false;
+
+    CHECK(fixed_subt(1234, 5739, &overflow) == -4505);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_subt(1234, -5739, &overflow) == 6973);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_subt(-1234, 5739, &overflow) == -6973);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_subt(-1234, -5739, &overflow) == 4505);
+    REQUIRE(overflow == false);
 }
 
 TEST_CASE("exponent", "[fixed-point]")
 {
-    CHECK(fixed_pow(12300, 0) == 100);
-    CHECK(fixed_pow(-12300, 0) == 100);
-    CHECK(fixed_pow(0, 0) == 100);
-    CHECK(fixed_pow(200, 3) == 800);
-    CHECK(fixed_pow(-200, 3) == -800);
-    CHECK(fixed_pow(250, 2) == 625);
-    CHECK(fixed_pow(-250, 2) == 625);
+    bool overflow = false;
+
+    CHECK(fixed_pow(12300, 0, &overflow) == 100);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(-12300, 0, &overflow) == 100);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(0, 0, &overflow) == 100);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(200, 3, &overflow) == 800);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(-200, 3, &overflow) == -800);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(250, 2, &overflow) == 625);
+    REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(-250, 2, &overflow) == 625);
+    REQUIRE(overflow == false);
 }
 
 TEST_CASE("text representation", "[fixed-point]")
@@ -87,13 +150,39 @@ TEST_CASE("text representation", "[fixed-point]")
 
 TEST_CASE("conversion from string", "[fixed-point]")
 {
-    CHECK(str_to_fixed("123.45") == 12345);
-    CHECK(str_to_fixed("123") == 12300);
-    CHECK(str_to_fixed("123.00") == 12300);
-    CHECK(str_to_fixed("123.10") == 12310);
-    CHECK(str_to_fixed("123.1") == 12310);
-    CHECK(str_to_fixed("123.01") == 12301);
-    CHECK(str_to_fixed("-123.01") == -12301);
-    CHECK(str_to_fixed("-0.21") == -21);
-    CHECK(str_to_fixed("0.21") == 21);
+    bool overflow = false;
+
+    CHECK(str_to_fixed("123.45", &overflow) == 12345);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("123", &overflow) == 12300);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("123.00", &overflow) == 12300);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("123.10", &overflow) == 12310);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("123.1", &overflow) == 12310);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("123.01", &overflow) == 12301);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("-123.01", &overflow) == -12301);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("-0.21", &overflow) == -21);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("0.21", &overflow) == 21);
+    REQUIRE(overflow == false);
+
+    CHECK(str_to_fixed("9999999.99", &overflow) == 999999999);
+    REQUIRE(overflow == false);
+
+    str_to_fixed("10000000.00", &overflow);
+    REQUIRE(overflow == true);
+    overflow = false;
 }

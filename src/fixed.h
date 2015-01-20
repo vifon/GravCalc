@@ -25,6 +25,9 @@
 #ifndef _h_FIXED_
 #define _h_FIXED_
 
+#include <limits.h>
+#include <string.h>
+
 #include "utility.h"
 
 /** The underlying fixed point representation. */
@@ -33,15 +36,31 @@ typedef int fixed;
 /** The scaling factor of the fixed point numbers. */
 #define FIXED_SCALE 100
 
+/** Maximum representable value. */
+const fixed FIXED_MAX = INT_MAX;
+
 /** Sum two fixed point numbers.
  *
  *  @param lhs
  *  @param rhs
+ *  @param[out] overflow Indicate whether the addition would
+ *  result in an overflow. If the initial value is @p true, it will
+ *  stay @p true. The returned value is unspecified if it is true.
  *
  *  @return The result.
  */
-fixed fixed_add(fixed lhs, fixed rhs)
+fixed fixed_add(fixed lhs, fixed rhs, bool* overflow)
 {
+    // If both arguments have the same sign...
+    if ((rhs > 0) == (lhs > 0)) {
+        // ...check for the overflow.
+        *overflow = *overflow || abs(lhs) > FIXED_MAX - abs(rhs);
+    }
+
+    if (*overflow) {
+        return lhs;
+    }
+
     return lhs + rhs;
 }
 
@@ -49,23 +68,40 @@ fixed fixed_add(fixed lhs, fixed rhs)
  *
  *  @param lhs
  *  @param rhs
+ *  @param[out] overflow Indicate whether the subtraction would
+ *  result in an overflow. If the initial value is @p true, it will
+ *  stay @p true. The returned value is unspecified if it is true.
  *
  *  @return The result.
  */
-fixed fixed_subt(fixed lhs, fixed rhs)
+fixed fixed_subt(fixed lhs, fixed rhs, bool* overflow)
 {
-    return lhs - rhs;
+    return fixed_add(lhs, -rhs, overflow);
 }
+
+int fixed_to_int(fixed);
+fixed fixed_div(fixed, fixed);
 
 /** Multiply two fixed point numbers.
  *
  *  @param lhs
  *  @param rhs
+ *  @param[out] overflow Indicate whether the multiplication would
+ *  result in an overflow. If the initial value is @p true, it will
+ *  stay @p true. The returned value is unspecified if it is true.
  *
  *  @return The result.
  */
-fixed fixed_mult(fixed lhs, fixed rhs)
+fixed fixed_mult(fixed lhs, fixed rhs, bool* overflow)
 {
+    if (fixed_to_int(rhs) != 0) {
+        *overflow = *overflow || abs(lhs) > abs(fixed_div(FIXED_MAX, rhs));
+    }
+
+    if (*overflow) {
+        return lhs;
+    }
+
     return (lhs / FIXED_SCALE) * rhs
         + ((lhs % FIXED_SCALE) * rhs) / FIXED_SCALE;
 }
@@ -75,11 +111,14 @@ fixed fixed_mult(fixed lhs, fixed rhs)
  *  @param lhs
  *  @param rhs
  *
+ *  @note The fractional part of @p rhs is lost in the process.
+ *  Because of this, the overflow is not possible.
+ *
  *  @return The result.
  */
 fixed fixed_div(fixed lhs, fixed rhs)
 {
-    return lhs / (rhs / FIXED_SCALE);
+    return lhs / fixed_to_int(rhs);
 }
 
 /** Create the textual representation of the fixed point number.
@@ -119,10 +158,13 @@ char* fixed_repr(fixed fixed, char* buffer, size_t size)
 /** Convert a string to a fixed point number.
  *
  *  @param str String to convert.
+ *  @param[out] overflow Indicate whether the conversion would
+ *  result in an overflow. If the initial value is @p true, it will
+ *  stay @p true. The returned value is unspecified if it is true.
  *
  *  @return The converted fixed point number.
  */
-static fixed str_to_fixed(const char* str)
+static fixed str_to_fixed(const char* str, bool* overflow)
 {
     char* fractional_start;
     char* endptr;
@@ -131,6 +173,18 @@ static fixed str_to_fixed(const char* str)
     if (*str == '-') {
         ++str;
         sign = -1;
+    }
+
+    // Detect a potential overflow. The 8-digit numbers below
+    // FIXED_MAX are currently wrongly detected too.
+    static const int FIXED_MAX_digits = 8;
+    const char* integral_end = strchr(str, '.');
+    if (integral_end == NULL) {
+        integral_end = str + strlen(str);
+    }
+    if (integral_end - str >= FIXED_MAX_digits) {
+        *overflow = true;
+        return 0;
     }
 
     int integral_part = str_to_int(str, &fractional_start, -1) * FIXED_SCALE;
@@ -147,22 +201,47 @@ static fixed str_to_fixed(const char* str)
     return sign * (integral_part + fractional_part);
 }
 
+/** Convert the fixed point value to a regular integer.
+ *
+ *  @param n
+ *
+ *  @return The integral part of the fixed point number.
+ */
+int fixed_to_int(fixed n)
+{
+    return n / FIXED_SCALE;
+}
+
+/** Convert the integer to a fixed point value.
+ *
+ *  @param n
+ *
+ *  @return The converted fixed point number.
+ */
+fixed int_to_fixed(int n)
+{
+    return n * FIXED_SCALE;
+}
+
 /** A simple implementation of the <tt>pow(3)</tt> standard function
- * for fixed point numbers.
+ *  for fixed point numbers.
  *
  *  @param base
  *  @param exponent
+ *  @param[out] overflow Indicate whether the exponentiation would
+ *  result in an overflow. If the initial value is @p true, it will
+ *  stay @p true. The returned value is unspecified if it is true.
  *
  *  @return The exponentiation result.
  *
  *  @note The exponent must not be negative!
  */
-fixed fixed_pow(fixed base, int exponent)
+fixed fixed_pow(fixed base, int exponent, bool* overflow)
 {
     fixed result = FIXED_SCALE;
 
     while (exponent--) {
-        result = fixed_mult(result, base);
+        result = fixed_mult(result, base, overflow);
     }
 
     return result;
