@@ -14,6 +14,10 @@ TEST_CASE("multiplication", "[fixed-point]")
     CHECK(fixed_mult(-1234, 5739) == -70819);
     CHECK(fixed_mult(1234, -5739) == -70819);
     CHECK(fixed_mult(-1234, -5739) == 70819);
+    CHECK(fixed_mult(99900, 99900) == 99800100);
+    CHECK(fixed_mult(-99900, 99900) == -99800100);
+    CHECK(fixed_mult(99900, -99900) == -99800100);
+    CHECK(fixed_mult(-99900, -99900) == 99800100);
 }
 
 TEST_CASE("division", "[fixed-point]")
@@ -22,7 +26,6 @@ TEST_CASE("division", "[fixed-point]")
     CHECK(fixed_div(1234, -5739) == -21);
     CHECK(fixed_div(-1234, 5739) == -21);
     CHECK(fixed_div(-1234, -5739) == 21);
-
 }
 
 TEST_CASE("addition", "[fixed-point]")
@@ -31,7 +34,6 @@ TEST_CASE("addition", "[fixed-point]")
     CHECK(fixed_add(1234, -5739) == -4505);
     CHECK(fixed_add(-1234, 5739) == 4505);
     CHECK(fixed_add(-1234, -5739) == -6973);
-
 }
 
 TEST_CASE("subtraction", "[fixed-point]")
