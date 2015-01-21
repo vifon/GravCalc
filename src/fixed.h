@@ -66,7 +66,8 @@ fixed fixed_subt(fixed lhs, fixed rhs)
  */
 fixed fixed_mult(fixed lhs, fixed rhs)
 {
-    return (lhs * rhs) / FIXED_SCALE;
+    return (lhs / FIXED_SCALE) * rhs
+        + ((lhs % FIXED_SCALE) * rhs) / FIXED_SCALE;
 }
 
 /** Divide two fixed point numbers.
@@ -78,7 +79,7 @@ fixed fixed_mult(fixed lhs, fixed rhs)
  */
 fixed fixed_div(fixed lhs, fixed rhs)
 {
-    return (lhs * FIXED_SCALE) / rhs;
+    return lhs / (rhs / FIXED_SCALE);
 }
 
 /** Create the textual representation of the fixed point number.
