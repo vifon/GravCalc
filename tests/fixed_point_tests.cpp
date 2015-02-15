@@ -49,6 +49,8 @@ TEST_CASE("division", "[fixed-point]")
     CHECK(fixed_div(1234, -5739) == -21);
     CHECK(fixed_div(-1234, 5739) == -21);
     CHECK(fixed_div(-1234, -5739) == 21);
+    CHECK(fixed_div(1000, 50) == 2000);
+    CHECK(fixed_div(FIXED_MAX, 50) == 0);
 }
 
 TEST_CASE("addition", "[fixed-point]")

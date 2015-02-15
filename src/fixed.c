@@ -99,14 +99,29 @@ fixed fixed_mult(fixed lhs, fixed rhs, bool* overflow)
  *  @param lhs
  *  @param rhs
  *
- *  @note The fractional part of @p rhs is lost in the process.
- *  Because of this, the overflow is not possible.
+ *  @note The fractional part of @p rhs is ignored for large @p lhs
+ *  due to a change in the order of performed operations made to avoid
+ *  overflows.
  *
  *  @return The result.
  */
 fixed fixed_div(fixed lhs, fixed rhs)
 {
-    return lhs / fixed_to_int(rhs);
+    /* Check if it's safe to normalize lhs instead of rhs for precision. */
+    if (lhs < FIXED_MAX / FIXED_SCALE) {
+        /* Keep precision whether possible. */
+        lhs = lhs * FIXED_SCALE;
+    } else {
+        /* Sacrifice the fractional part of rhs when the another order
+         * of operations would cause an overflow. */
+        rhs = fixed_to_int(rhs);
+    }
+
+    if (rhs == 0) {
+        return 0;               /* TODO: handle properly */
+    } else {
+        return lhs / rhs;
+    }
 }
 
 /** Create the textual representation of the fixed point number.
