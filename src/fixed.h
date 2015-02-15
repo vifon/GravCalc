@@ -240,11 +240,19 @@ fixed fixed_pow(fixed base, int exponent, bool* overflow)
 {
     fixed result = FIXED_SCALE;
 
-    while (exponent--) {
+    bool negative = exponent < 0;
+    exponent = abs(exponent);
+
+    while (exponent-- && *overflow == false) {
         result = fixed_mult(result, base, overflow);
     }
 
-    return result;
+    if (negative) {
+        return fixed_div(int_to_fixed(1),
+                         result);
+    } else {
+        return result;
+    }
 }
 
 #endif

@@ -116,6 +116,9 @@ TEST_CASE("exponent", "[fixed-point]")
 
     CHECK(fixed_pow(-250, 2, &overflow) == 625);
     REQUIRE(overflow == false);
+
+    CHECK(fixed_pow(1000, -2, &overflow) == 1);
+    REQUIRE(overflow == false);
 }
 
 TEST_CASE("text representation", "[fixed-point]")
