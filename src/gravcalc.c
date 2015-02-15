@@ -579,9 +579,6 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
     /* create the text margin */
     GRect bounds = layer_get_bounds(layer);
     bounds.origin.x += 5;
-    if (s_error_msg) {
-        bounds.origin.y += 1;
-    }
     bounds.size.w -= 10;
 
     graphics_draw_text(
