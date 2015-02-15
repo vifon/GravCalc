@@ -237,7 +237,7 @@ fixed int_to_fixed(int n)
  *
  *  @return The exponentiation result.
  *
- *  @note The exponent must not be negative!
+ *  @note The exponent is an integer, not a fixed point number.
  */
 fixed fixed_pow(fixed base, int exponent, bool* overflow)
 {
