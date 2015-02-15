@@ -1,6 +1,5 @@
 /build
 /doc/
 /tests/Makefile.deps
-/tests/fixed_point_tests.o
-/tests/test_main.o
+/tests/*.o
 /tests/unittests

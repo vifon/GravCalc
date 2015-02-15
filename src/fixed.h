@@ -25,9 +25,15 @@
 #ifndef _h_FIXED_
 #define _h_FIXED_
 
-#include <pebble.h>
+#include "config.h"
+
+/* Do not include pebble.h when compiling the unittests. */
+#ifndef __cplusplus
+#   include <pebble.h>             /* for bool */
+#endif
 
 #include <limits.h>
+#include <stdlib.h>
 
 /** The underlying fixed point representation. */
 typedef int fixed;
