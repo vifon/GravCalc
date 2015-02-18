@@ -727,6 +727,8 @@ static void init() {
 
     // Choose update rate
     accel_service_set_sampling_rate(ACCEL_SAMPLING_25HZ);
+
+    light_enable(true);
 }
 
 static void deinit() {
@@ -734,6 +736,8 @@ static void deinit() {
     window_destroy(s_main_window);
 
     accel_data_service_unsubscribe();
+
+    light_enable(false);
 }
 
 /** @} */
