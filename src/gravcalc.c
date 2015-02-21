@@ -185,6 +185,7 @@ static bool push_number(CALC_TYPE *number) {
         *slot = str_to_fixed(s_input_buffer, &overflow);
         if (overflow) {
             set_error("OUT OF RANGE");
+            --s_calculator_stack_index;
             return false;
         }
         clear_input();
