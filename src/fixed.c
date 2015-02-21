@@ -178,17 +178,28 @@ fixed str_to_fixed(const char* str, bool* overflow)
         sign = -1;
     }
 
-    // Detect a potential overflow. The 8-digit numbers below
-    // FIXED_MAX are currently wrongly detected too.
+    // Detect a potential overflow.
     static const int FIXED_MAX_digits = 8;
+    static const char* FIXED_MAX_char = "21474836"; /* FIXED_MAX/FIXED_SCALE */
     const char* integral_end = strchr(str, '.');
     if (integral_end == NULL) {
         integral_end = str + strlen(str);
     }
-    if (integral_end - str >= FIXED_MAX_digits) {
+
+    if (integral_end - str > FIXED_MAX_digits) {
         *overflow = true;
         return 0;
+    } else if (integral_end - str == FIXED_MAX_digits) {
+        /* strcmp will return a positive number for string
+         * lexicographically greater than FIXED_MAX_digits. For
+         * strings of the same length (which is the case in this if
+         * branch) it is the same as being numerically greater. */
+        if (strncmp(str, FIXED_MAX_char, FIXED_MAX_digits) > 0) {
+            *overflow = true;
+            return 0;
+        }
     }
+
 
     int integral_part = str_to_int(str, &fractional_start, -1) * FIXED_SCALE;
     if (*fractional_start != '\0') {
