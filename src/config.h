@@ -58,25 +58,25 @@
 #define CALIBRATION_SAMPLES 10
 
 
-// #ifdef PBL_COLOR
+#ifdef PBL_COLOR
 
-// #   define COLOR_DISPLAY_TEXT TODO
-// #   define COLOR_DISPLAY_BG TODO
+#   define COLOR_DISPLAY_TEXT GColorBlack
+#   define COLOR_DISPLAY_BG GColorCadetBlue
 
-// #   define COLOR_BUTTON_TEXT TODO
-// #   define COLOR_BUTTON_BG TODO
-// #   define COLOR_BUTTON_BORDER TODO
+#   define COLOR_BUTTON_TEXT GColorLightGray
+#   define COLOR_BUTTON_BG GColorCobaltBlue
+#   define COLOR_BUTTON_BORDER GColorDukeBlue
 
-// #   define COLOR_BUTTON_FOCUSED_TEXT TODO
-// #   define COLOR_BUTTON_FOCUSED_BG TODO
-// #   define COLOR_BUTTON_FOCUSED_BORDER TODO
+#   define COLOR_BUTTON_FOCUSED_TEXT GColorPastelYellow
+#   define COLOR_BUTTON_FOCUSED_BG GColorVividCerulean
+#   define COLOR_BUTTON_FOCUSED_BORDER GColorPictonBlue
 
-// #   define COLOR_BG TODO
+#   define COLOR_BG GColorOxfordBlue
 
-// #   define COLOR_CURSOR TODO
-// #   define COLOR_CURSOR_BORDER TODO
+#   define COLOR_CURSOR GColorCeleste
+#   define COLOR_CURSOR_BORDER GColorDarkGray
 
-// #else
+#else
 
 #   define COLOR_DISPLAY_TEXT GColorBlack
 #   define COLOR_DISPLAY_BG GColorWhite
@@ -94,6 +94,6 @@
 #   define COLOR_CURSOR GColorWhite
 #   define COLOR_CURSOR_BORDER GColorBlack
 
-// #endif
+#endif
 
 #endif
