@@ -1,5 +1,10 @@
 # GravCalc Changelog
 
+## v1.11
+
+- ready for Pebble Time!
+- improved the button sizing
+
 ## v1.10
 - division has the precision just like before the `v1.8` update (when
   possible without overflows)
