@@ -57,4 +57,43 @@
 /** The number of samples used for the calibration at the startup */
 #define CALIBRATION_SAMPLES 10
 
+
+// #ifdef PBL_COLOR
+
+// #   define COLOR_DISPLAY_TEXT TODO
+// #   define COLOR_DISPLAY_BG TODO
+
+// #   define COLOR_BUTTON_TEXT TODO
+// #   define COLOR_BUTTON_BG TODO
+// #   define COLOR_BUTTON_BORDER TODO
+
+// #   define COLOR_BUTTON_FOCUSED_TEXT TODO
+// #   define COLOR_BUTTON_FOCUSED_BG TODO
+// #   define COLOR_BUTTON_FOCUSED_BORDER TODO
+
+// #   define COLOR_BG TODO
+
+// #   define COLOR_CURSOR TODO
+// #   define COLOR_CURSOR_BORDER TODO
+
+// #else
+
+#   define COLOR_DISPLAY_TEXT GColorBlack
+#   define COLOR_DISPLAY_BG GColorWhite
+
+#   define COLOR_BUTTON_TEXT GColorWhite
+#   define COLOR_BUTTON_BG GColorBlack
+#   define COLOR_BUTTON_BORDER GColorWhite
+
+#   define COLOR_BUTTON_FOCUSED_TEXT GColorBlack
+#   define COLOR_BUTTON_FOCUSED_BG GColorWhite
+#   define COLOR_BUTTON_FOCUSED_BORDER GColorWhite
+
+#   define COLOR_BG GColorBlack
+
+#   define COLOR_CURSOR GColorWhite
+#   define COLOR_CURSOR_BORDER GColorBlack
+
+// #endif
+
 #endif
