@@ -96,14 +96,17 @@ static const GColor secondary_color = GColorClear;
  */
 static GRect get_rect_for_button(unsigned int button_index) {
     const unsigned int keypad_margin_x = 5;
-    const unsigned int keypad_margin_y = 3;
+    const unsigned int keypad_margin_y = 4;
     const unsigned int key_sep_x = 5;
     const unsigned int key_sep_y = 5;
     const unsigned int keys_in_row = 4;
-    const unsigned int key_width = (SCREEN_W
-                                    - key_sep_x * (keys_in_row-1)
-                                    - keypad_margin_x * 2) / 4;
-    const unsigned int key_height = 24;
+    const unsigned int usable_screen_width =
+        SCREEN_W
+        - key_sep_x * (keys_in_row-1)
+        - keypad_margin_x * 2;
+    const float key_width =    /* 0.5 added for the proper rounding */
+        ((float)usable_screen_width / keys_in_row) + 0.5;
+    const unsigned int key_height = 25;
 
     GRect bounds = GRect(
         /* horizontal position */
