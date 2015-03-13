@@ -83,9 +83,15 @@ static GPoint s_cursor_position =
 {SCREEN_W / 2,
  KEYPAD_HEIGHT / 2};
 
-/* Variables with colors for easy swapping. */
-static const GColor main_color = GColorBlack;
-static const GColor secondary_color = GColorClear;
+#ifdef PBL_COLOR
+/* TODO: Change the colors!
+ * TODO: Move to config.h */
+#   define MAIN_COLOR GColorBlue
+#   define SECONDARY_COLOR GColorRed
+#else
+#   define MAIN_COLOR GColorBlack
+#   define SECONDARY_COLOR GColorWhite
+#endif
 
 /** Calculate the coordinates and bounds of the n-th calculator button
  *  relative to the upper upper left corner of the layer.
@@ -496,9 +502,8 @@ static void click_config_provider(void *context) {
 /** Draw the keys and their borders.
  */
 static void draw_keypad_callback(Layer *layer, GContext *ctx) {
-    graphics_context_set_fill_color(ctx, main_color);
-    graphics_context_set_stroke_color(ctx, secondary_color);
-    graphics_context_set_text_color(ctx, secondary_color);
+    graphics_context_set_fill_color(ctx, MAIN_COLOR);
+    graphics_context_set_stroke_color(ctx, SECONDARY_COLOR);
     graphics_fill_rect(ctx, layer_get_bounds(layer), 2, GCornerNone);
 
     const GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
@@ -514,10 +519,11 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
 
             if (active) {
                 /* invert colors */
-                graphics_context_set_text_color(ctx, main_color);
-                graphics_context_set_fill_color(ctx, secondary_color);
+                graphics_context_set_text_color(ctx, MAIN_COLOR);
+                graphics_context_set_fill_color(ctx, SECONDARY_COLOR);
                 graphics_fill_rect(ctx, bounds, 1, GCornerNone);
             } else {
+                graphics_context_set_text_color(ctx, SECONDARY_COLOR);
                 graphics_draw_rect(ctx, bounds);
             }
 
@@ -529,10 +535,6 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
                 GTextOverflowModeTrailingEllipsis,
                 GTextAlignmentCenter,
                 NULL);
-            if (active) {
-                /* cleanup */
-                graphics_context_set_text_color(ctx, secondary_color);
-            }
         }
     }
 }
@@ -541,8 +543,8 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
  *  Additionally display the error message, if any.
  */
 static void draw_input_callback(Layer *layer, GContext *ctx) {
-    graphics_context_set_fill_color(ctx, secondary_color);
-    graphics_context_set_text_color(ctx, main_color);
+    graphics_context_set_fill_color(ctx, SECONDARY_COLOR);
+    graphics_context_set_text_color(ctx, MAIN_COLOR);
     graphics_fill_rect(ctx, layer_get_bounds(layer), 2, GCornerNone);
 
     char buffer[64];
@@ -585,6 +587,8 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
     bounds.origin.x += 5;
     bounds.size.w -= 10;
 
+    graphics_context_set_text_color(ctx, MAIN_COLOR);
+
     graphics_draw_text(
         ctx,
         buffer,
@@ -614,11 +618,11 @@ static void draw_input_callback(Layer *layer, GContext *ctx) {
 /** Draw the cursor with an outline. */
 static void draw_cursor_callback(Layer *layer, GContext *ctx) {
     /* Draw the cursor. */
-    graphics_context_set_fill_color(ctx, secondary_color);
+    graphics_context_set_fill_color(ctx, SECONDARY_COLOR);
     graphics_fill_circle(ctx, s_cursor_position, 3);
 
     /* Draw the cursor outline for better visibility. */
-    graphics_context_set_stroke_color(ctx, main_color);
+    graphics_context_set_stroke_color(ctx, MAIN_COLOR);
     graphics_draw_circle(ctx, s_cursor_position, 4);
 }
 
