@@ -1,5 +1,9 @@
 # GravCalc Changelog
 
+## v1.12
+
+- the buttons are concave: they cursor is "repelled" from their edges
+
 ## v1.11
 
 - ready for Pebble Time!

@@ -57,6 +57,14 @@
 /** The number of samples used for the calibration at the startup */
 #define CALIBRATION_SAMPLES 10
 
+/** The factor of steepness of each button.
+ *
+ *  More specifically, it is an inverse of that factor. The
+ *  <b>bigger</b> it is, the <b>easier</b> it is to escape the button
+ *  area.
+ */
+#define STEEPNESS_FACTOR 10
+
 
 #ifdef PBL_COLOR
 

@@ -120,6 +120,26 @@ static GRect get_rect_for_button(unsigned int button_index) {
     return bounds;
 }
 
+/** Get the coordinates and bounds of the calculator button which is
+ *  currently focused by the cursor.
+ *
+ *  @param[in] bounds The bounds of the currently focused button.
+ *  Unspecified if there is no current button (i.e. the return value
+ *  is false).
+ *
+ *  @return true if a cursor is places on a button, false otherwise.
+ */
+static bool get_rect_for_current_button(GRect *bounds) {
+    int i;
+    for (i = 0; i < KEY_COUNT; ++i) {
+        *bounds = get_rect_for_button(i);
+        if (grect_contains_point(bounds, &s_cursor_position)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /** Switch to the next keypad.
  */
 static void keypad_next() {
@@ -687,8 +707,24 @@ static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_sa
         zero_y /= CALIBRATION_SAMPLES;
     }
 
-    s_cursor_position.x +=  (data[0].x - zero_x) * (SCREEN_W / 4000.f);
-    s_cursor_position.y += -(data[0].y - zero_y) * (SCREEN_H / 4000.f);
+    /* the button is concave, simulate its steepness */
+    int x_slope = 0;
+    int y_slope = 0;
+    GRect selected_button;
+    if (get_rect_for_current_button(&selected_button)) {
+        GPoint center = grect_center_point(&selected_button);
+        x_slope = (center.x - s_cursor_position.x);
+        y_slope = (center.y - s_cursor_position.y);
+    }
+
+    /* apply the new position cursor */
+    const float ACCEL_MAX = 4000.f;
+    s_cursor_position.x +=
+        ((data[0].x - zero_x) * (SCREEN_W / ACCEL_MAX)
+         + x_slope / STEEPNESS_FACTOR);
+    s_cursor_position.y +=
+        (-(data[0].y - zero_y) * (SCREEN_H / ACCEL_MAX)
+         + y_slope / STEEPNESS_FACTOR);
 
     if (s_cursor_position.x < 0) {
         s_cursor_position.x = 0;
