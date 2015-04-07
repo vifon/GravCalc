@@ -49,7 +49,7 @@ static size_t s_current_keypad = 0;
 static Layer *s_keypad_layer;
 /** The layer with the current input, the stack state and their background. */
 static Layer *s_input_layer;
-/** The layer with the cursor. Has identical bounds as @ref s_input_layer. */
+/** The layer with the cursor. Has identical bounds as @ref s_keypad_layer. */
 static Layer *s_cursor_layer;
 
 /** Calculations stack. */
