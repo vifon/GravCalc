@@ -52,6 +52,19 @@ static Layer *s_input_layer;
 /** The layer with the cursor. Has identical bounds as @ref s_keypad_layer. */
 static Layer *s_cursor_layer;
 
+/** A pointer to the button currently focused with the cursor. Used to
+ *  not search for that button multiple times per frame, once in every
+ *  hook. It is set in @ref draw_keypad_callback and used in other
+ *  callbacks and handlers. <b>Is considered valid only if @ref
+ *  s_focused_button_index is not equal -1</b>.
+ */
+static GRect s_focused_button;
+
+/** Index of the button pointed by @ref s_focused_button.
+ *  -1 means it wasn't yet set.
+ */
+static int s_focused_button_index = -1;
+
 /** Calculations stack. */
 static CALC_TYPE s_calculator_stack[CALC_STACK_SIZE];
 /** Currently used stack slots in @ref s_calculator_stack. */
@@ -118,35 +131,6 @@ static GRect get_rect_for_button(unsigned int button_index) {
         key_height);
 
     return bounds;
-}
-
-/** Get the coordinates and bounds of the calculator button which is
- *  currently focused by the cursor.
- *
- *  @param[out] bounds The bounds of the currently focused button.
- *  Unspecified if there is no current button (i.e. the return value
- *  is false). May be NULL to ignore.
- *  @param[out] button_index The index of the currently focused button.
- *  The notes above about @ref bounds apply.
- *
- *  @return true if a cursor is places on a button, false otherwise.
- */
-static bool get_rect_for_current_button(GRect *bounds, unsigned int *button_index) {
-    GRect tmp_bounds;
-    unsigned int i;
-    for (i = 0; i < KEY_COUNT; ++i) {
-        tmp_bounds = get_rect_for_button(i);
-        if (grect_contains_point(bounds, &s_cursor_position)) {
-            if (bounds != NULL) {
-                *bounds = tmp_bounds;
-            }
-            if (button_index != NULL) {
-                *button_index = i;
-            }
-            return true;
-        }
-    }
-    return false;
 }
 
 /** Switch to the next keypad.
@@ -433,13 +417,9 @@ static void click_button(char button_text) {
 /** Handler for the button used for selection/clicking.
  */
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-    GPoint current_position = s_cursor_position;
-
-    GRect bounds;
-    unsigned int button_index;
-    if (get_rect_for_current_button(&bounds, &button_index)) {
+    if (s_focused_button_index != -1) {
         set_error(NULL);
-        char clicked_text = s_keypad_text[s_current_keypad][button_index][0];
+        char clicked_text = s_keypad_text[s_current_keypad][s_focused_button_index][0];
         click_button(clicked_text);
     }
 }
@@ -526,6 +506,9 @@ static void draw_keypad_callback(Layer *layer, GContext *ctx) {
             bool active = grect_contains_point(&bounds, &s_cursor_position);
 
             if (active) {
+                s_focused_button = bounds;
+                s_focused_button_index = i;
+
                 graphics_context_set_text_color(ctx, COLOR_BUTTON_FOCUSED_TEXT);
                 graphics_context_set_fill_color(ctx, COLOR_BUTTON_FOCUSED_BG);
                 graphics_context_set_stroke_color(ctx, COLOR_BUTTON_FOCUSED_BORDER);
@@ -712,9 +695,8 @@ static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_sa
     /* the button is concave, simulate its steepness */
     int x_slope = 0;
     int y_slope = 0;
-    GRect selected_button;
-    if (get_rect_for_current_button(&selected_button, NULL)) {
-        GPoint center = grect_center_point(&selected_button);
+    if (s_focused_button_index != -1) {
+        GPoint center = grect_center_point(&s_focused_button);
         x_slope = (center.x - s_cursor_position.x);
         y_slope = (center.y - s_cursor_position.y);
     }
