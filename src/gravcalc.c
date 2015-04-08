@@ -123,17 +123,26 @@ static GRect get_rect_for_button(unsigned int button_index) {
 /** Get the coordinates and bounds of the calculator button which is
  *  currently focused by the cursor.
  *
- *  @param[in] bounds The bounds of the currently focused button.
+ *  @param[out] bounds The bounds of the currently focused button.
  *  Unspecified if there is no current button (i.e. the return value
- *  is false).
+ *  is false). May be NULL to ignore.
+ *  @param[out] button_index The index of the currently focused button.
+ *  The notes above about @ref bounds apply.
  *
  *  @return true if a cursor is places on a button, false otherwise.
  */
-static bool get_rect_for_current_button(GRect *bounds) {
-    int i;
+static bool get_rect_for_current_button(GRect *bounds, unsigned int *button_index) {
+    GRect tmp_bounds;
+    unsigned int i;
     for (i = 0; i < KEY_COUNT; ++i) {
-        *bounds = get_rect_for_button(i);
+        tmp_bounds = get_rect_for_button(i);
         if (grect_contains_point(bounds, &s_cursor_position)) {
+            if (bounds != NULL) {
+                *bounds = tmp_bounds;
+            }
+            if (button_index != NULL) {
+                *button_index = i;
+            }
             return true;
         }
     }
@@ -426,19 +435,12 @@ static void click_button(char button_text) {
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
     GPoint current_position = s_cursor_position;
 
-    /* Iterate through all the keys. */
-    unsigned int i;
-    for (i = 0; i < KEY_COUNT; ++i) {
-        GRect bounds = get_rect_for_button(i);
-
-        /* Check if it is the key that was clicked. */
-        if (grect_contains_point(&bounds, &current_position)) {
-            set_error(NULL);
-
-            char clicked_text = s_keypad_text[s_current_keypad][i][0];
-
-            click_button(clicked_text);
-        }
+    GRect bounds;
+    unsigned int button_index;
+    if (get_rect_for_current_button(&bounds, &button_index)) {
+        set_error(NULL);
+        char clicked_text = s_keypad_text[s_current_keypad][button_index][0];
+        click_button(clicked_text);
     }
 }
 
@@ -711,7 +713,7 @@ static void read_accel_and_move_cursor_callback(AccelData *data, uint32_t num_sa
     int x_slope = 0;
     int y_slope = 0;
     GRect selected_button;
-    if (get_rect_for_current_button(&selected_button)) {
+    if (get_rect_for_current_button(&selected_button, NULL)) {
         GPoint center = grect_center_point(&selected_button);
         x_slope = (center.x - s_cursor_position.x);
         y_slope = (center.y - s_cursor_position.y);
