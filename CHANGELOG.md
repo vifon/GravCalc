@@ -1,5 +1,10 @@
 # GravCalc Changelog
 
+## v1.13
+
+- some optimizations
+- Pebble Time version uploaded to the appstore
+
 ## v1.12
 
 - the buttons are concave: they cursor is "repelled" from their edges
