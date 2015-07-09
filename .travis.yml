@@ -1,0 +1,15 @@
+language: C++
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+
+install:
+  - export CC=gcc-4.8
+  - export CXX=g++-4.8
+  - make -C tests/
+script:
+  - ./tests/unittests

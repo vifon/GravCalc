@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include <catch.hpp>
+#include "catch.hpp"
 
 #include "../src/fixed.h"
 
