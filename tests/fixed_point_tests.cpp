@@ -184,10 +184,17 @@ TEST_CASE("conversion from string", "[fixed-point]")
     CHECK(str_to_fixed("0.21", &overflow) == 21);
     REQUIRE(overflow == false);
 
-    CHECK(str_to_fixed("9999999.99", &overflow) == 999999999);
+    CHECK(str_to_fixed("21474836.47", &overflow) == 2147483647);
     REQUIRE(overflow == false);
 
-    str_to_fixed("10000000.00", &overflow);
+    CHECK(str_to_fixed("2147483.647", &overflow) == 214748364);
+    REQUIRE(overflow == false);
+
+    str_to_fixed("214748364.7", &overflow);
+    REQUIRE(overflow == true);
+    overflow = false;
+
+    str_to_fixed("21474837.48", &overflow);
     REQUIRE(overflow == true);
     overflow = false;
 }
