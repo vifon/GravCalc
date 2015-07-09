@@ -1,6 +1,8 @@
 GravCalc
 ========
 
+[![Build Status](https://travis-ci.org/Vifon/GravCalc.svg?branch=master)](https://travis-ci.org/Vifon/GravCalc)
+
 Accelerometer-based calculator for the Pebble smartwatch.
 
 [Pebble Appstore URL](https://apps.getpebble.com/applications/54afb90f413f38e0f8000054)  
