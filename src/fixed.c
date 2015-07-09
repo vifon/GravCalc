@@ -179,17 +179,14 @@ fixed str_to_fixed(const char* str, bool* overflow)
     }
 
     // Detect a potential overflow.
-    static const int FIXED_MAX_digits = 8;
-    static const char* FIXED_MAX_char = "21474836"; /* FIXED_MAX/FIXED_SCALE */
-    const char* integral_end = strchr(str, '.');
-    if (integral_end == NULL) {
-        integral_end = str + strlen(str);
-    }
+    static const char FIXED_MAX_char[] = "21474836.47"; /* FIXED_MAX/FIXED_SCALE */
+    static const size_t FIXED_MAX_digits = sizeof(FIXED_MAX_char)-1; /* -1 because of '\0' at the end */
+    const size_t length = strlen(str);
 
-    if (integral_end - str > FIXED_MAX_digits) {
+    if (length > FIXED_MAX_digits) {
         *overflow = true;
         return 0;
-    } else if (integral_end - str == FIXED_MAX_digits) {
+    } else {
         /* strcmp will return a positive number for string
          * lexicographically greater than FIXED_MAX_digits. For
          * strings of the same length (which is the case in this if
