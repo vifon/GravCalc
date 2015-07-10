@@ -184,6 +184,9 @@ TEST_CASE("conversion from string", "[fixed-point]")
     CHECK(str_to_fixed("0.21", &overflow) == 21);
     REQUIRE(overflow == false);
 
+    CHECK(str_to_fixed("9.00", &overflow) == 900);
+    REQUIRE(overflow == false);
+
     CHECK(str_to_fixed("21474836.47", &overflow) == 2147483647);
     REQUIRE(overflow == false);
 
