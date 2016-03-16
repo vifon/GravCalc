@@ -5,7 +5,7 @@
 /** Performing an operation automatically pushes the result to the
  *  stack instead of storing it in the editing buffer.
  */
-#define ENABLE_AUTOPUSH 1
+#define ENABLE_AUTOPUSH 0
 
 
 
@@ -13,7 +13,7 @@
 #define CALC_STACK_SIZE 64
 /** Numeric type used for the calculations. */
 #define CALC_TYPE fixed
-/** @p printf format specifier for @ref CALC_TYPE. */
+/** @p printf format specifier for @p REPR(CALC_TYPE). */
 #define CALC_TYPE_FMT "%s"
 
 /** Concatenate two symbols with an underline in-between.

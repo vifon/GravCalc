@@ -285,8 +285,7 @@ static bool perform_operation(char op) {
     push_number(&result);
     clear_input();
 #else
-    s_input_length = snprintf(s_input_buffer, INPUT_BUFFER_SIZE,
-                              ""CALC_TYPE_FMT"", result);
+    s_input_length = strlen(REPR(result, s_input_buffer, INPUT_BUFFER_SIZE));
 #endif
 
     return true;
