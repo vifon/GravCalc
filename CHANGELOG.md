@@ -1,5 +1,10 @@
 # GravCalc Changelog
 
+## v1.14
+
+- the calculation result is no longer pushed to the stack, it's now
+  left in the editing buffer
+
 ## v1.13
 
 - some optimizations
